@@ -14,6 +14,7 @@ if os.path.isdir(user_site) and user_site not in sys.path:
     sys.path.insert(0, user_site)
 
 from flask import Flask, jsonify, render_template, request
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from config import config_by_name
 from app.models import init_db
@@ -32,6 +33,9 @@ def create_app(config_name: str = "default") -> Flask:
     env_config = os.environ.get("FLASK_ENV", config_name)
     cfg_class = config_by_name.get(env_config, config_by_name["default"])
     app.config.from_object(cfg_class)
+
+    # Configure ProxyFix for reverse-proxy deployments (Render, Heroku, Nginx)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     # Initialize SQLite database schema
     init_db(app.config["DATABASE_PATH"])
