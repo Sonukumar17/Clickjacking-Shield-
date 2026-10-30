@@ -21,8 +21,7 @@ ehthumbs.db
 Desktop.ini
 .DS_Store
 
-# Local SQLite databases (recreatable via seed_sample_data.py)
-*.db
+# Local SQLite databases (allow clickjack_defense.db, ignore wal/journal)
 *.db-journal
 *.db-wal
 *.db-shm
