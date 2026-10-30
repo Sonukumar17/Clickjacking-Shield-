@@ -22,9 +22,16 @@ Desktop.ini
 .DS_Store
 
 # Local SQLite databases (recreatable via seed_sample_data.py)
+*.db
 *.db-journal
 *.db-wal
 *.db-shm
+
+# Personal assignment reports / docs
+*.docx
+*Report*.html
+*Report*.docx
+*Assignment*.*
 
 # Other standalone repositories in workspace
 student-portfolio/
