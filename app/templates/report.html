@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Formal Security Report #{{ assessment.id[:8] }} | ClickjackShield{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Report Toolbar -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+    <div>
+      <span class="badge bg-secondary bg-opacity-25 text-info border border-info border-opacity-25 mb-1">
+        Official Security Assessment Report
+      </span>
+      <h2 class="fw-bold text-white mb-0">Audit Report: {{ assessment.hostname }}</h2>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('reports.export_pdf', assessment_id=assessment.id) }}" class="btn btn-cyber-primary btn-sm">
+        <i class="fa-solid fa-file-pdf me-1"></i> Download PDF
+      </a>
+      <a href="{{ url_for('reports.export_json', assessment_id=assessment.id) }}" class="btn btn-cyber-outline btn-sm">
+        <i class="fa-solid fa-file-code me-1 text-info"></i> Export JSON
+      </a>
+      <button onclick="window.print()" class="btn btn-cyber-outline btn-sm">
+        <i class="fa-solid fa-print me-1"></i> Print
+      </button>
+      <a href="{{ url_for('history.history_list') }}" class="btn btn-cyber-outline btn-sm">
+        <i class="fa-solid fa-clock-rotate-left me-1"></i> History
+      </a>
+    </div>
+  </div>
+
+  <!-- Printable Report Document Container -->
+  <div class="cyber-card p-4 p-lg-5 mb-4 shadow-lg border-secondary">
+    <!-- Report Header Banner -->
+    <div class="border-bottom border-secondary pb-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <i class="fa-solid fa-shield-halved text-info fs-4"></i>
+            <span class="fs-4 fw-bold text-white">ClickjackShield Security Audit</span>
+          </div>
+          <div class="text-dim small">RFC 7034 & W3C Content Security Policy Conformance Evaluation</div>
+        </div>
+
+        <div class="text-md-end">
+          <div class="small text-muted">Assessment Identifier</div>
+          <div class="font-monospace small text-info">{{ assessment.id }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Executive Posture Badge Strip -->
+    <div class="p-3 rounded mb-4 text-center
+      {% if assessment.outcome == 'Protected' %}
+        bg-success bg-opacity-20 border border-success border-opacity-50 text-success
+      {% elif assessment.outcome == 'Potential Risk' %}
+        bg-warning bg-opacity-20 border border-warning border-opacity-50 text-warning
+      {% else %}
+        bg-secondary bg-opacity-20 border border-secondary border-opacity-50 text-light
+      {% endif %}">
+      <h4 class="fw-bold mb-0 text-uppercase letter-spacing-1">
+        Assessment Status: {{ assessment.outcome }}
+      </h4>
+      <div class="small mt-1 opacity-75">Confidence Level: <strong>{{ assessment.confidence }}</strong></div>
+    </div>
+
+    <!-- Target & Environment Summary Grid -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3 col-6">
+        <div class="p-3 rounded bg-dark border border-secondary border-opacity-50">
+          <small class="text-dim d-block">Target Hostname</small>
+          <strong class="text-white">{{ assessment.hostname }}</strong>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="p-3 rounded bg-dark border border-secondary border-opacity-50">
+          <small class="text-dim d-block">HTTP Response Code</small>
+          <strong class="text-info font-monospace">HTTP {{ assessment.http_status or 'N/A' }}</strong>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="p-3 rounded bg-dark border border-secondary border-opacity-50">
+          <small class="text-dim d-block">Target IP Address</small>
+          <span class="font-monospace text-light small">{{ assessment.ip_address or 'N/A' }}</span>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="p-3 rounded bg-dark border border-secondary border-opacity-50">
+          <small class="text-dim d-block">Scan Timestamp (UTC)</small>
+          <span class="text-light small">{{ assessment.scan_timestamp[:19].replace('T', ' ') }}</span>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="p-2 px-3 rounded bg-dark border border-secondary border-opacity-25 small">
+          <span class="text-dim">Evaluated Endpoint:</span> 
+          <span class="font-monospace text-white">{{ assessment.final_url }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 1: Detailed Findings -->
+    <h5 class="fw-bold text-white mb-3">1. Anti-Framing Header Verification</h5>
+    <div class="table-responsive mb-4">
+      <table class="table table-cyber border mb-0 small">
+        <thead>
+          <tr>
+            <th style="width: 20%;">Security Mechanism</th>
+            <th style="width: 25%;">Directive / Header Value</th>
+            <th style="width: 15%;">Status</th>
+            <th style="width: 40%;">Compliance Interpretation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>X-Frame-Options</strong></td>
+            <td class="font-monospace text-break">{{ assessment.xfo_raw or 'None' }}</td>
+            <td>
+              {% if assessment.xfo_status.startswith('Protected') %}
+                <span class="badge bg-success bg-opacity-25 text-success">Compliant</span>
+              {% else %}
+                <span class="badge bg-warning bg-opacity-25 text-warning">{{ assessment.xfo_status }}</span>
+              {% endif %}
+            </td>
+            <td>{{ assessment.xfo_details }}</td>
+          </tr>
+          <tr>
+            <td><strong>Content-Security-Policy</strong><br/><span class="text-dim">(frame-ancestors)</span></td>
+            <td class="font-monospace text-break">{{ assessment.csp_frame_ancestors or 'None' }}</td>
+            <td>
+              {% if assessment.csp_status.startswith('Protected') %}
+                <span class="badge bg-success bg-opacity-25 text-success">Compliant</span>
+              {% else %}
+                <span class="badge bg-warning bg-opacity-25 text-warning">{{ assessment.csp_status }}</span>
+              {% endif %}
+            </td>
+            <td>{{ assessment.csp_details }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Section 2: Technical Explanation -->
+    <h5 class="fw-bold text-white mb-2">2. Technical Evaluation & Exploitability Context</h5>
+    <div class="p-3 rounded bg-dark border border-secondary border-opacity-50 mb-4">
+      <p class="text-light small mb-0 leading-relaxed">
+        {{ assessment.explanation }}
+      </p>
+    </div>
+
+    <!-- Section 3: Actionable Remediation -->
+    <h5 class="fw-bold text-white mb-2">3. Remediation Recommendations</h5>
+    <div class="p-3 rounded bg-dark border border-secondary border-opacity-50 mb-4">
+      <p class="text-light small mb-3" style="white-space: pre-line;">
+        {{ assessment.remediation }}
+      </p>
+      <div class="code-block small">
+        # Recommended Production HTTP Response Headers<br/>
+        Content-Security-Policy: frame-ancestors 'none';<br/>
+        X-Frame-Options: DENY
+      </div>
+    </div>
+
+    <!-- Section 4: Audit Limitations & Scope -->
+    <h5 class="fw-bold text-white mb-2">4. Limitations & Scope</h5>
+    <div class="p-3 rounded bg-dark border border-secondary border-opacity-50 small text-muted">
+      <p class="mb-2">
+        <strong>Audit Methodology:</strong> This assessment was performed non-intrusively by examining HTTP response headers 
+        delivered over TLS. It evaluates browser enforcement rules pursuant to RFC 7034 and W3C CSP Level 3.
+      </p>
+      <p class="mb-0">
+        <strong>Exploitability Disclaimer:</strong> The absence of anti-framing headers is a defensive weakness, but not proof 
+        of a compromised system. Real-world exploitation requires that an attacker induce an authenticated user to perform an action 
+        without explicit secondary confirmation or CSRF tokens.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

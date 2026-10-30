@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}URL Security Scanner | ClickjackShield{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Page Header -->
+  <div class="text-center mb-5">
+    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-info bg-opacity-10 border border-info border-opacity-25 text-info small mb-2">
+      <i class="fa-solid fa-radar"></i>
+      <span>Live HTTP Anti-Framing Analyzer</span>
+    </div>
+    <h2 class="fw-bold text-white">Security Header Scanner</h2>
+    <p class="text-muted small mx-auto" style="max-width: 620px;">
+      Evaluate target web applications against clickjacking risks by analyzing Content-Security-Policy (CSP) 
+      frame-ancestors, X-Frame-Options, and complementary defense-in-depth headers.
+    </p>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <!-- Scanner Card -->
+      <div class="cyber-card p-4 p-md-5 mb-4">
+        <form id="scanForm" action="{{ url_for('scan.run_scan') }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <label for="targetUrl" class="form-label text-white fw-bold mb-2">
+            Target Website URL <span class="text-info">(HTTPS Only)</span>
+          </label>
+
+          <div class="input-group input-group-lg mb-3">
+            <span class="input-group-text bg-secondary bg-opacity-25 border-secondary text-info">
+              <i class="fa-solid fa-lock"></i>
+            </span>
+            <input type="url" 
+                   class="form-control form-cyber" 
+                   id="targetUrl" 
+                   name="url" 
+                   placeholder="https://example.com" 
+                   required 
+                   autocomplete="off"
+                   spellcheck="false">
+            <button type="submit" class="btn btn-cyber-primary px-4" id="scanBtn">
+              <i class="fa-solid fa-crosshairs me-2"></i> Scan Website
+            </button>
+          </div>
+
+          <!-- Quick Test Presets -->
+          <div class="d-flex align-items-center gap-2 flex-wrap small text-muted mb-2">
+            <span class="text-dim">Sample Test Targets:</span>
+            <button type="button" class="btn btn-sm btn-cyber-outline py-0 px-2 preset-target" data-url="https://github.com">
+              github.com
+            </button>
+            <button type="button" class="btn btn-sm btn-cyber-outline py-0 px-2 preset-target" data-url="https://google.com">
+              google.com
+            </button>
+            <button type="button" class="btn btn-sm btn-cyber-outline py-0 px-2 preset-target" data-url="https://owasp.org">
+              owasp.org
+            </button>
+            <button type="button" class="btn btn-sm btn-cyber-outline py-0 px-2 preset-target" data-url="https://mozilla.org">
+              mozilla.org
+            </button>
+          </div>
+        </form>
+
+        <!-- Dynamic Error Alert Box -->
+        <div id="scanErrorBox" class="alert alert-danger cyber-card text-light border-0 d-none mt-4" role="alert">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation fs-5 text-danger"></i>
+            <span id="scanErrorMessage" class="small"></span>
+          </div>
+        </div>
+
+        <!-- Animated Progress Radar Box -->
+        <div id="scanProgressBox" class="d-none text-center py-4 my-3">
+          <div class="radar-box mb-3">
+            <div class="radar-circle"></div>
+            <div class="radar-circle"></div>
+            <div class="radar-circle"></div>
+            <div class="position-absolute top-50 start-50 translate-middle">
+              <i class="fa-solid fa-shield-halved text-info fs-3"></i>
+            </div>
+          </div>
+          <h6 class="text-white fw-bold mb-1">Executing Defensive Security Analysis</h6>
+          <p id="scanProgressStep" class="text-info font-monospace small mb-0">
+            1/4 Resolving DNS and enforcing SSRF defenses...
+          </p>
+        </div>
+      </div>
+
+      <!-- SSRF Defense & Validation Policy Card -->
+      <div class="cyber-card p-4 border-info border-opacity-25 bg-secondary bg-opacity-10">
+        <h6 class="text-info fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="fa-solid fa-shield-virus"></i> Automated Defensive Boundary Rules
+        </h6>
+        <div class="row g-3 small text-muted">
+          <div class="col-md-6">
+            <div class="d-flex align-items-start gap-2">
+              <i class="fa-solid fa-ban text-danger mt-1"></i>
+              <div>
+                <strong class="text-light">SSRF & Loopback Blocking</strong>
+                <div>Localhost (127.0.0.1, ::1), RFC 1918 private subnets, and cloud metadata (169.254.169.254) are rejected.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="d-flex align-items-start gap-2">
+              <i class="fa-solid fa-route text-info mt-1"></i>
+              <div>
+                <strong class="text-light">Safe Redirect Inspection</strong>
+                <div>Traces up to 5 redirect hops safely, re-verifying SSRF boundaries on each HTTP 3xx Location header.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="d-flex align-items-start gap-2">
+              <i class="fa-solid fa-lock text-success mt-1"></i>
+              <div>
+                <strong class="text-light">Strict HTTPS Enforcement</strong>
+                <div>Only public HTTPS destinations are permitted to prevent plain-text eavesdropping and tampering.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="d-flex align-items-start gap-2">
+              <i class="fa-solid fa-user-secret text-warning mt-1"></i>
+              <div>
+                <strong class="text-light">Zero Credential Forwarding</strong>
+                <div>No session cookies, authorization tokens, or internal identifiers are sent to target hosts.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/scanner.js') }}"></script>
+{% endblock %}

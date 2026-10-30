@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}404 Not Found | ClickjackShield{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+  <div class="cyber-card p-5 mx-auto" style="max-width: 540px;">
+    <i class="fa-solid fa-magnifying-glass text-info fs-1 mb-3"></i>
+    <h2 class="fw-bold text-white mb-2">404 - Resource Not Found</h2>
+    <p class="text-muted small mb-4">
+      {{ error.description if error and error.description else "The requested page, assessment record, or audit report could not be found." }}
+    </p>
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-cyber-primary btn-sm">
+      <i class="fa-solid fa-chart-pie me-1"></i> Return to Dashboard
+    </a>
+  </div>
+</div>
+{% endblock %}

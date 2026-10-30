@@ -1,0 +1,33 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment files & local virtual environments
+.env
+.venv/
+venv/
+ENV/
+env/
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# Local SQLite databases (recreatable via seed_sample_data.py)
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Other standalone repositories in workspace
+student-portfolio/
+
+# Temporary / log files
+*.log

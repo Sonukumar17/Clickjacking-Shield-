@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+
+{% block title %}ShieldBot AI Assistant | ClickjackShield{% endblock %}
+
+{% block head_extra %}
+<style>
+  /* ── Chatbot Page Layout ── */
+  .chatbot-page-wrap {
+    min-height: calc(100vh - 130px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2.5rem 1rem 3rem;
+  }
+
+  .chatbot-page-container {
+    width: 100%;
+    max-width: 860px;
+  }
+
+  /* ── Full-page Chat Window ── */
+  .chat-page-window {
+    background: var(--bg-card-solid);
+    border: 1px solid var(--border-dim);
+    border-radius: 20px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.65), 0 0 40px rgba(176,106,252,0.12);
+    display: flex;
+    flex-direction: column;
+    height: 640px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── Chat Header ── */
+  .chat-page-header {
+    background: linear-gradient(135deg, rgba(124,58,237,0.90), rgba(176,106,252,0.65));
+    padding: 1.2rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border-dim);
+    flex-shrink: 0;
+  }
+
+  .chat-page-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #fff;
+    border: 2px solid rgba(255,255,255,0.25);
+    box-shadow: 0 0 18px rgba(176,106,252,0.55);
+    animation: icon-breathe 3.5s ease-in-out infinite alternate;
+  }
+
+  .chat-page-title { font-size: 1.25rem; font-weight: 800; color: #fff; }
+  .chat-page-subtitle {
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.70);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.1rem;
+  }
+
+  .chat-page-badges { margin-left: auto; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .chat-page-badge {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.20);
+    color: rgba(255,255,255,0.85);
+    padding: 0.2rem 0.65rem;
+    border-radius: 12px;
+    font-size: 0.73rem;
+    font-weight: 600;
+  }
+
+  /* ── Messages ── */
+  #page-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.4rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    scroll-behavior: smooth;
+  }
+
+  #page-chat-messages::-webkit-scrollbar { width: 5px; }
+  #page-chat-messages::-webkit-scrollbar-track { background: transparent; }
+  #page-chat-messages::-webkit-scrollbar-thumb { background: var(--border-dim); border-radius: 4px; }
+
+  /* ── Input Bar ── */
+  .chat-page-input-bar {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-dim);
+    background: rgba(10,6,18,0.88);
+    display: flex;
+    gap: 0.65rem;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  #page-chat-input {
+    flex: 1;
+    background: rgba(22,14,40,0.85);
+    border: 1px solid var(--border-dim);
+    color: #ffffff !important;
+    border-radius: 24px;
+    padding: 0.7rem 1.2rem;
+    font-size: 0.92rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  #page-chat-input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(176,106,252,0.22);
+  }
+
+  #page-chat-input::placeholder { color: #b6a7dc !important; }
+
+  #page-chat-send {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #b06afc);
+    border: none;
+    color: #fff;
+    font-size: 1.05rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+  }
+
+  #page-chat-send:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 18px rgba(176,106,252,0.60);
+  }
+
+  /* ── Suggested Topics Sidebar ── */
+  .topics-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .topic-chip {
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #ffffff !important;
+    font-weight: 500;
+    font-size: 0.88rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-align: left;
+  }
+
+  .topic-chip:hover {
+    background: rgba(176,106,252,0.22);
+    border-color: var(--accent-primary);
+    color: #ffffff !important;
+    transform: translateX(3px);
+  }
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-align: left;
+  }
+
+  .topic-chip:hover {
+    background: rgba(176,106,252,0.12);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    transform: translateX(3px);
+  }
+
+  .topic-chip i { font-size: 0.9rem; flex-shrink: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chatbot-page-wrap">
+  <div class="chatbot-page-container">
+
+    <!-- Page Heading -->
+    <div class="text-center mb-4">
+      <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-info bg-opacity-10 border border-info border-opacity-25 text-info small mb-3">
+        <i class="fa-solid fa-robot"></i>
+        <span>Rule-Based Cybersecurity Assistant · No AI API</span>
+      </div>
+      <h1 class="fw-bold text-white fs-3 mb-1">
+        <i class="fa-solid fa-shield-halved text-info me-2"></i>ShieldBot Assistant
+      </h1>
+      <p class="text-muted small">Ask anything about clickjacking, security headers, scanning, or this platform</p>
+    </div>
+
+    <div class="row g-4">
+
+      <!-- ── Left: Chat Window ─────────────────────────────────── -->
+      <div class="col-lg-8">
+        <div class="chat-page-window">
+
+          <!-- Header -->
+          <div class="chat-page-header">
+            <div class="chat-page-avatar">
+              <i class="fa-solid fa-robot"></i>
+            </div>
+            <div>
+              <div class="chat-page-title">ShieldBot</div>
+              <div class="chat-page-subtitle">
+                <span class="chatbot-status-dot"></span>
+                Online &bull; Cybersecurity Guide
+              </div>
+            </div>
+            <div class="chat-page-badges">
+              <span class="chat-page-badge"><i class="fa-solid fa-brain me-1"></i>Rule-Based</span>
+              <span class="chat-page-badge"><i class="fa-solid fa-lock me-1"></i>No AI API</span>
+            </div>
+          </div>
+
+          <!-- Messages Area -->
+          <div id="page-chat-messages" aria-live="polite"></div>
+
+          <!-- Input Bar -->
+          <div class="chat-page-input-bar">
+            <input
+              type="text"
+              id="page-chat-input"
+              placeholder="Type your question about clickjacking, CSP, X-Frame-Options..."
+              autocomplete="off"
+              maxlength="300"
+              aria-label="Your question"
+            >
+            <button id="page-chat-send" title="Send" aria-label="Send message">
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </div>
+
+        </div><!-- /chat-page-window -->
+      </div>
+
+      <!-- ── Right: Topics Sidebar ──────────────────────────────── -->
+      <div class="col-lg-4">
+        <div class="cyber-card p-3 mb-3">
+          <h6 class="text-white fw-bold mb-3 small text-uppercase">
+            <i class="fa-solid fa-bolt text-info me-1"></i> Quick Topics
+          </h6>
+          <div class="topics-sidebar" id="topic-chips">
+            <button class="topic-chip" data-q="What is clickjacking?">
+              <i class="fa-solid fa-crosshairs text-rose"></i> What is Clickjacking?
+            </button>
+            <button class="topic-chip" data-q="How does clickjacking work?">
+              <i class="fa-solid fa-gears text-warning"></i> How does it work?
+            </button>
+            <button class="topic-chip" data-q="How to prevent clickjacking?">
+              <i class="fa-solid fa-shield-halved text-success"></i> Prevention methods
+            </button>
+            <button class="topic-chip" data-q="What is X-Frame-Options?">
+              <i class="fa-solid fa-code text-info"></i> X-Frame-Options header
+            </button>
+            <button class="topic-chip" data-q="What is CSP?">
+              <i class="fa-solid fa-file-shield text-info"></i> Content Security Policy
+            </button>
+            <button class="topic-chip" data-q="What is frame-ancestors?">
+              <i class="fa-solid fa-sitemap text-info"></i> frame-ancestors directive
+            </button>
+            <button class="topic-chip" data-q="How to scan a website?">
+              <i class="fa-solid fa-radar text-warning"></i> How to scan a website?
+            </button>
+            <button class="topic-chip" data-q="How to download security report?">
+              <i class="fa-solid fa-file-pdf text-rose"></i> Download PDF report
+            </button>
+            <button class="topic-chip" data-q="What is Demo Lab?">
+              <i class="fa-solid fa-flask-vial text-success"></i> Demo Lab usage
+            </button>
+            <button class="topic-chip" data-q="What are scan results meaning?">
+              <i class="fa-solid fa-chart-pie text-warning"></i> Scan results meaning
+            </button>
+          </div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="cyber-card p-3">
+          <h6 class="text-white fw-bold mb-2 small text-uppercase">
+            <i class="fa-solid fa-circle-info text-info me-1"></i> About ShieldBot
+          </h6>
+          <p class="text-muted small mb-2">
+            ShieldBot is a <strong class="text-white">rule-based chatbot</strong> that answers cybersecurity questions using keyword matching — no AI API, no internet required.
+          </p>
+          <ul class="list-unstyled small text-muted mb-0">
+            <li class="mb-1"><i class="fa-solid fa-check text-success me-1"></i> 20+ predefined topics</li>
+            <li class="mb-1"><i class="fa-solid fa-check text-success me-1"></i> Hinglish support</li>
+            <li class="mb-1"><i class="fa-solid fa-check text-success me-1"></i> Quick reply buttons</li>
+            <li><i class="fa-solid fa-check text-success me-1"></i> Zero AI cost</li>
+          </ul>
+        </div>
+      </div>
+
+    </div><!-- /row -->
+  </div><!-- /container -->
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/**
+ * Page-specific chatbot wiring for the dedicated /chatbot page.
+ * Re-uses the KNOWLEDGE_BASE and matchResponse() from chatbot.js
+ * but targets the page-level DOM elements instead of the widget.
+ */
+document.addEventListener("DOMContentLoaded", () => {
+  const messagesEl = document.getElementById("page-chat-messages");
+  const inputEl    = document.getElementById("page-chat-input");
+  const sendBtn    = document.getElementById("page-chat-send");
+
+  // ── Helpers ──────────────────────────────────────────────────
+  function escHtml(s) {
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  function scrollBottom() {
+    requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; });
+  }
+
+  function appendUser(text) {
+    const d = document.createElement("div");
+    d.className = "chat-msg chat-msg-user";
+    d.innerHTML = `<div class="chat-bubble chat-bubble-user">${escHtml(text)}</div>`;
+    messagesEl.appendChild(d);
+    scrollBottom();
+  }
+
+  function appendBot(html, qrs = []) {
+    const wrap = document.createElement("div");
+    wrap.className = "chat-msg chat-msg-bot";
+    const qrHtml = qrs.length
+      ? `<div class="chat-qr-group">${qrs.map(q=>`<button class="chat-qr-btn" data-qr="${escHtml(q)}">${escHtml(q)}</button>`).join("")}</div>`
+      : "";
+    wrap.innerHTML = `
+      <div class="chat-avatar"><i class="fa-solid fa-robot"></i></div>
+      <div class="chat-bot-content">
+        <div class="chat-bubble chat-bubble-bot">${html}</div>
+        ${qrHtml}
+      </div>`;
+    wrap.querySelectorAll(".chat-qr-btn").forEach(btn => {
+      btn.addEventListener("click", () => { inputEl.value = btn.dataset.qr; handleSend(); });
+    });
+    messagesEl.appendChild(wrap);
+    scrollBottom();
+  }
+
+  function showTyping() {
+    const d = document.createElement("div");
+    d.id = "page-typing";
+    d.className = "chat-msg chat-msg-bot";
+    d.innerHTML = `
+      <div class="chat-avatar"><i class="fa-solid fa-robot"></i></div>
+      <div class="chat-bubble chat-bubble-bot chat-typing-dots"><span></span><span></span><span></span></div>`;
+    messagesEl.appendChild(d);
+    scrollBottom();
+  }
+
+  function removeTyping() {
+    const el = document.getElementById("page-typing");
+    if (el) el.remove();
+  }
+
+  // ── Send ──────────────────────────────────────────────────────
+  function handleSend() {
+    const text = inputEl.value.trim();
+    if (!text) return;
+    inputEl.value = "";
+    appendUser(text);
+    showTyping();
+    setTimeout(() => {
+      removeTyping();
+      // matchResponse comes from chatbot.js loaded in base.html
+      const res = (typeof matchResponse === "function") ? matchResponse(text) : window._chatbotFallback;
+      appendBot(res.answer, res.quickReplies);
+    }, 650);
+  }
+
+  sendBtn.addEventListener("click", handleSend);
+  inputEl.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } });
+
+  // ── Topic chips ───────────────────────────────────────────────
+  document.querySelectorAll(".topic-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      inputEl.value = chip.dataset.q;
+      handleSend();
+      inputEl.focus();
+    });
+  });
+
+  // ── Initial greeting ──────────────────────────────────────────
+  setTimeout(() => {
+    if (typeof KNOWLEDGE_BASE !== "undefined") {
+      const g = KNOWLEDGE_BASE.find(r => r.id === "greeting");
+      if (g) appendBot(g.answer, g.quickReplies);
+    }
+  }, 350);
+});
+</script>
+{% endblock %}

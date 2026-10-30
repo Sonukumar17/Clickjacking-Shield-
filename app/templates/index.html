@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Clickjacking Detection & Prevention | ClickjackShield{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-center">
+  <div class="container">
+    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-info bg-opacity-10 border border-info border-opacity-25 text-info small mb-3">
+      <i class="fa-solid fa-shield-virus"></i>
+      <span>Automated Anti-Framing Header Verification & Research Sandbox</span>
+    </div>
+
+    <h1 class="hero-title">
+      <span class="gradient-text">Clickjacking Detection & Prevention</span>
+    </h1>
+
+    <p class="hero-subtitle">
+      Analyze web security headers, understand clickjacking risks, and strengthen your application's defenses.
+    </p>
+
+    <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+      <a href="{{ url_for('scan.scanner_form') }}" class="btn btn-cyber-primary btn-lg px-4">
+        <i class="fa-solid fa-radar me-2"></i> Start Security Assessment
+      </a>
+      <a href="{{ url_for('lab.lab_workspace') }}" class="btn btn-cyber-outline btn-lg px-4">
+        <i class="fa-solid fa-flask-vial me-2 text-info"></i> Enter Educational Lab
+      </a>
+      <a href="{{ url_for('chatbot.chatbot_page') }}" class="btn btn-cyber-outline btn-lg px-4">
+        <i class="fa-solid fa-robot me-2 text-info"></i> Chat with ShieldBot
+      </a>
+    </div>
+
+    <!-- Ethical Usage Disclaimer Notice Box -->
+    <div class="row justify-content-center mt-5">
+      <div class="col-lg-8">
+        <div class="cyber-card p-3 text-start border-warning border-opacity-25 bg-warning bg-opacity-10">
+          <div class="d-flex align-items-start gap-3">
+            <i class="fa-solid fa-triangle-exclamation text-warning fs-4 mt-1"></i>
+            <div>
+              <h6 class="text-warning fw-bold mb-1">Ethical Authorization Notice</h6>
+              <p class="small text-muted mb-0">
+                Security header scanning must be strictly limited to web systems that you own or have explicit authorization to assess. 
+                This platform enforces defense-in-depth safeguards, restricts tests to public HTTPS targets, and blocks internal networks and cloud metadata access.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Three Core Feature Cards -->
+<section class="py-5">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h6 class="text-info text-uppercase fw-bold letter-spacing-1 small">Platform Capabilities</h6>
+      <h2 class="fw-bold text-white">Defend Your Applications Against UI Redressing</h2>
+    </div>
+
+    <div class="row g-4">
+      <!-- Card 1: Detect -->
+      <div class="col-lg-3 col-md-6">
+        <div class="cyber-card h-100 p-4 d-flex flex-column">
+          <div class="stat-icon cyan mb-3">
+            <i class="fa-solid fa-crosshairs"></i>
+          </div>
+          <h4 class="fw-bold text-white mb-2">Detect</h4>
+          <p class="text-muted small flex-grow-1">
+            Analyze anti-framing security headers. Inspect <code class="code-badge">Content-Security-Policy: frame-ancestors</code> 
+            and <code class="code-badge">X-Frame-Options</code>, check for misconfigurations, detect duplicate or malformed directives, 
+            and follow safe HTTPS redirects.
+          </p>
+          <div class="mt-3">
+            <a href="{{ url_for('scan.scanner_form') }}" class="text-info text-decoration-none small fw-semibold">
+              Explore Scanner <i class="fa-solid fa-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Understand -->
+      <div class="col-lg-3 col-md-6">
+        <div class="cyber-card h-100 p-4 d-flex flex-column">
+          <div class="stat-icon emerald mb-3">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <h4 class="fw-bold text-white mb-2">Understand</h4>
+          <p class="text-muted small flex-grow-1">
+            Learn how clickjacking attacks work in a safe laboratory. Experiment with interactive opacity controls, 
+            observe how attackers conceal malicious UI overlays over legitimate buttons, and witness how browser-enforced 
+            framing controls completely defeat the exploit.
+          </p>
+          <div class="mt-3">
+            <a href="{{ url_for('lab.lab_workspace') }}" class="text-emerald text-decoration-none small fw-semibold">
+              Launch Lab <i class="fa-solid fa-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Protect -->
+      <div class="col-lg-3 col-md-6">
+        <div class="cyber-card h-100 p-4 d-flex flex-column">
+          <div class="stat-icon amber mb-3">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <h4 class="fw-bold text-white mb-2">Protect</h4>
+          <p class="text-muted small flex-grow-1">
+            Follow actionable recommendations to improve web security. Access copy-paste configuration templates for 
+            Flask, Nginx, Apache, Node.js/Helmet, understand the difference between <code class="code-badge">frame-ancestors</code> 
+            and <code class="code-badge">frame-src</code>, and leverage SameSite cookie controls.
+          </p>
+          <div class="mt-3">
+            <a href="{{ url_for('prevention.prevention_guide') }}" class="text-warning text-decoration-none small fw-semibold">
+              View Guide <i class="fa-solid fa-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Assistant (Chatbot) -->
+      <div class="col-lg-3 col-md-6">
+        <div class="cyber-card h-100 p-4 d-flex flex-column">
+          <div class="stat-icon cyan mb-3" style="background: rgba(176,106,252,0.18); color: var(--accent-primary);">
+            <i class="fa-solid fa-robot"></i>
+          </div>
+          <h4 class="fw-bold text-white mb-2">ShieldBot</h4>
+          <p class="text-muted small flex-grow-1">
+            Get instant cybersecurity answers with our rule-based assistant. Ask questions about clickjacking vectors, 
+            header definitions, scan interpretation, and remediation recipes without requiring any external AI API.
+          </p>
+          <div class="mt-3">
+            <a href="{{ url_for('chatbot.chatbot_page') }}" class="text-info text-decoration-none small fw-semibold">
+              Open Chatbot <i class="fa-solid fa-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Live Platform Metrics Quick Strip -->
+<section class="py-4 bg-secondary bg-opacity-25 border-top border-bottom border-secondary border-opacity-25">
+  <div class="container">
+    <div class="row g-3 text-center">
+      <div class="col-6 col-md-3">
+        <div class="text-dim small text-uppercase fw-semibold">Total Audits</div>
+        <div class="fs-2 fw-bold text-white">{{ stats.total }}</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="text-dim small text-uppercase fw-semibold">Recognized Protected</div>
+        <div class="fs-2 fw-bold text-success">{{ stats.protected }}</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="text-dim small text-uppercase fw-semibold">Potential Risks</div>
+        <div class="fs-2 fw-bold text-warning">{{ stats.potential_risk }}</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="text-dim small text-uppercase fw-semibold">Audit Engine</div>
+        <div class="fs-2 fw-bold text-info">RFC 7034</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Security Distinction Callout Section -->
+<section class="py-5">
+  <div class="container">
+    <div class="cyber-card p-4 p-lg-5">
+      <div class="row align-items-center gy-4">
+        <div class="col-lg-8">
+          <div class="d-flex align-items-center gap-2 text-info small fw-bold mb-2">
+            <i class="fa-solid fa-scale-balanced"></i>
+            <span>Vulnerability Context & Responsible Assessment</span>
+          </div>
+          <h3 class="fw-bold text-white mb-3">Distinguishing Potential Misconfiguration from Exploitability</h3>
+          <p class="text-muted mb-3">
+            In modern application security, missing an <code class="code-badge">X-Frame-Options</code> or <code class="code-badge">frame-ancestors</code> 
+            header flags a defensive gap, but does not guarantee immediate exploitability. Real-world clickjacking viability requires a sensitive, 
+            state-changing user action, absent or bypassable CSRF/SameSite cookie boundaries, and predictable victim layout.
+          </p>
+          <div class="d-flex gap-2 flex-wrap">
+            <span class="badge bg-secondary bg-opacity-50 text-light border border-secondary">
+              <i class="fa-solid fa-check text-success me-1"></i> Multi-layer verification
+            </span>
+            <span class="badge bg-secondary bg-opacity-50 text-light border border-secondary">
+              <i class="fa-solid fa-check text-success me-1"></i> SameSite cookie analysis
+            </span>
+            <span class="badge bg-secondary bg-opacity-50 text-light border border-secondary">
+              <i class="fa-solid fa-check text-success me-1"></i> Precedence mapping
+            </span>
+          </div>
+        </div>
+        <div class="col-lg-4 text-center">
+          <a href="{{ url_for('scan.scanner_form') }}" class="btn btn-cyber-primary btn-lg w-100 py-3">
+            <i class="fa-solid fa-crosshairs me-2"></i> Scan an Application Now
+          </a>
+          <div class="small text-dim mt-2">Zero credentials stored &bull; Public HTTPS only</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

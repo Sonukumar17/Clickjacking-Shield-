@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}403 Forbidden | ClickjackShield{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+  <div class="cyber-card p-5 mx-auto" style="max-width: 540px;">
+    <i class="fa-solid fa-ban text-danger fs-1 mb-3"></i>
+    <h2 class="fw-bold text-white mb-2">403 - Forbidden</h2>
+    <p class="text-muted small mb-4">
+      {{ error.description if error and error.description else "Access is forbidden. CSRF token validation failed or access was denied." }}
+    </p>
+    <a href="{{ url_for('main.index') }}" class="btn btn-cyber-primary btn-sm">
+      <i class="fa-solid fa-house me-1"></i> Return Home
+    </a>
+  </div>
+</div>
+{% endblock %}

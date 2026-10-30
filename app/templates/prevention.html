@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+
+{% block title %}Clickjacking Prevention & Remediation Guide | ClickjackShield{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Page Header -->
+  <div class="text-center mb-5">
+    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-info bg-opacity-10 border border-info border-opacity-25 text-info small mb-2">
+      <i class="fa-solid fa-book-shield"></i>
+      <span>OWASP & W3C Defensive Engineering Guide</span>
+    </div>
+    <h2 class="fw-bold text-white">Clickjacking Prevention & Remediation</h2>
+    <p class="text-muted small mx-auto" style="max-width: 680px;">
+      Implement definitive anti-framing defenses using Content-Security-Policy (CSP) Level 3 and X-Frame-Options across 
+      major web servers, cloud gateways, and backend web application frameworks.
+    </p>
+  </div>
+
+  <div class="row g-4">
+    <!-- Main Content Area -->
+    <div class="col-lg-8">
+      <!-- Section 1: Content-Security-Policy (The Modern Gold Standard) -->
+      <div class="cyber-card p-4 mb-4">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-info bg-opacity-25 text-info font-monospace">W3C Recommendation</span>
+          <h4 class="fw-bold text-white mb-0">1. Content-Security-Policy: frame-ancestors</h4>
+        </div>
+        <p class="text-muted small leading-relaxed">
+          The <code class="code-badge">frame-ancestors</code> directive within the Content-Security-Policy HTTP response header is the official modern standard for controlling which parent origins are authorized to embed a web resource within <code class="code-badge">&lt;iframe&gt;</code>, <code class="code-badge">&lt;frame&gt;</code>, <code class="code-badge">&lt;embed&gt;</code>, or <code class="code-badge">&lt;object&gt;</code> tags.
+        </p>
+
+        <!-- Standard Syntax Examples -->
+        <div class="mb-3">
+          <h6 class="text-white fw-bold small">Disallow All Framing (Recommended Default):</h6>
+          <div class="code-block position-relative">
+            <button class="copy-btn" data-target="code-fa-none">Copy</button>
+            <pre id="code-fa-none" class="mb-0">Content-Security-Policy: frame-ancestors 'none';</pre>
+          </div>
+          <small class="text-dim">
+            This prevents the protected page from being embedded by <strong>any origin</strong> (including the site's own origin) when the policy is enforced by modern browsers.
+          </small>
+        </div>
+
+        <div class="mb-3">
+          <h6 class="text-white fw-bold small">Allow Same-Origin Embedding Only:</h6>
+          <div class="code-block position-relative">
+            <button class="copy-btn" data-target="code-fa-self">Copy</button>
+            <pre id="code-fa-self" class="mb-0">Content-Security-Policy: frame-ancestors 'self';</pre>
+          </div>
+          <small class="text-dim">
+            Permits framing only if the top-level parent page matches the exact scheme, hostname, and port of the resource.
+          </small>
+        </div>
+
+        <div>
+          <h6 class="text-white fw-bold small">Allow Specific Trusted Third-Party Origins:</h6>
+          <div class="code-block position-relative">
+            <button class="copy-btn" data-target="code-fa-hosts">Copy</button>
+            <pre id="code-fa-hosts" class="mb-0">Content-Security-Policy: frame-ancestors 'self' https://trusted-partner.example.com https://*.corp.example.com;</pre>
+          </div>
+          <small class="text-dim">
+            Allows explicit trusted domains to embed the page while rejecting all unauthorized cross-origin attempts.
+          </small>
+        </div>
+      </div>
+
+      <!-- Section 2: X-Frame-Options (Legacy Backward Compatibility) -->
+      <div class="cyber-card p-4 mb-4">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-secondary bg-opacity-50 text-light font-monospace">RFC 7034</span>
+          <h4 class="fw-bold text-white mb-0">2. X-Frame-Options (Legacy Fallback)</h4>
+        </div>
+        <p class="text-muted small leading-relaxed">
+          The <code class="code-badge">X-Frame-Options</code> header was introduced by Microsoft in Internet Explorer 8 and documented in RFC 7034. While superseded by CSP Level 2/3, it remains vital as a defense-in-depth fallback for legacy browsers.
+        </p>
+
+        <div class="mb-3">
+          <h6 class="text-white fw-bold small">Strict Denial:</h6>
+          <div class="code-block position-relative">
+            <button class="copy-btn" data-target="code-xfo-deny">Copy</button>
+            <pre id="code-xfo-deny" class="mb-0">X-Frame-Options: DENY</pre>
+          </div>
+          <small class="text-dim">
+            Prevents framing completely in all browsers that support the directive, even when requested by a page on the same origin.
+          </small>
+        </div>
+
+        <div class="mb-3">
+          <h6 class="text-white fw-bold small">Same-Origin Framing:</h6>
+          <div class="code-block position-relative">
+            <button class="copy-btn" data-target="code-xfo-same">Copy</button>
+            <pre id="code-xfo-same" class="mb-0">X-Frame-Options: SAMEORIGIN</pre>
+          </div>
+          <small class="text-dim">
+            Allows framing only if the parent window originates from the identical origin.
+          </small>
+        </div>
+
+        <div class="alert alert-warning cyber-card p-3 border-warning border-opacity-25 bg-warning bg-opacity-10 small mb-0">
+          <i class="fa-solid fa-triangle-exclamation text-warning me-1"></i>
+          <strong>Deprecation Notice:</strong> Avoid using <code class="code-badge">X-Frame-Options: ALLOW-FROM &lt;uri&gt;</code>. 
+          It is deprecated, unsupported in Chrome and Safari, and will leave applications completely unprotected. Use CSP <code class="code-badge">frame-ancestors</code> instead.
+        </div>
+      </div>
+
+      <!-- Section 3: frame-ancestors vs frame-src (Crucial Distinction) -->
+      <div class="cyber-card p-4 mb-4 border-info border-opacity-25">
+        <h4 class="fw-bold text-white mb-3">
+          <i class="fa-solid fa-scale-balanced text-info me-2"></i> Key Architectural Distinction: frame-ancestors vs. frame-src
+        </h4>
+        <div class="row g-3 small">
+          <div class="col-md-6">
+            <div class="p-3 rounded bg-dark border border-secondary h-100">
+              <h6 class="text-info fw-bold mb-2">frame-ancestors (Defends THIS page)</h6>
+              <p class="text-muted mb-2">
+                Answers: <em>"Who is allowed to embed this page as an iframe?"</em>
+              </p>
+              <ul class="text-light ps-3 mb-0">
+                <li>Controls framing of the current document by other parent origins.</li>
+                <li><strong>Primary clickjacking defense.</strong></li>
+                <li>Inherited by child frames under CSP Level 3.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="p-3 rounded bg-dark border border-secondary h-100">
+              <h6 class="text-info fw-bold mb-2">frame-src / child-src (Restricts EXTERNAL iframes)</h6>
+              <p class="text-muted mb-2">
+                Answers: <em>"What URLs can this page embed inside itself?"</em>
+              </p>
+              <ul class="text-light ps-3 mb-0">
+                <li>Controls what child iframes your page is permitted to embed.</li>
+                <li>Defends against Cross-Site Scripting (XSS) and rogue iframes.</li>
+                <li><strong>Does NOT prevent this page from being framed by attackers!</strong></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: Implementation Guidance across Stacks -->
+      <div class="cyber-card p-4 mb-4">
+        <h4 class="fw-bold text-white mb-3">
+          <i class="fa-solid fa-code text-info me-2"></i> Implementation Guidance Across Platforms
+        </h4>
+
+        <!-- Nav Tabs for Frameworks -->
+        <ul class="nav nav-pills mb-3 gap-2" id="platformTabs" role="tablist">
+          <li class="nav-item">
+            <button class="nav-link nav-link-cyber active" id="flask-tab" data-bs-toggle="pill" data-bs-target="#tab-flask" type="button">Python Flask</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link nav-link-cyber" id="nginx-tab" data-bs-toggle="pill" data-bs-target="#tab-nginx" type="button">Nginx</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link nav-link-cyber" id="apache-tab" data-bs-toggle="pill" data-bs-target="#tab-apache" type="button">Apache</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link nav-link-cyber" id="node-tab" data-bs-toggle="pill" data-bs-target="#tab-node" type="button">Node.js (Helmet)</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link nav-link-cyber" id="django-tab" data-bs-toggle="pill" data-bs-target="#tab-django" type="button">Django</button>
+          </li>
+        </ul>
+
+        <!-- Tab Contents -->
+        <div class="tab-content" id="platformTabsContent">
+          <!-- Flask -->
+          <div class="tab-pane fade show active" id="tab-flask">
+            <p class="small text-muted mb-2">In Python Flask, apply headers globally using an <code class="code-badge">after_request</code> hook or Flask-Talisman:</p>
+            <div class="code-block position-relative">
+              <button class="copy-btn" data-target="code-flask">Copy</button>
+              <pre id="code-flask" class="mb-0"># Option 1: Native Flask after_request hook
+@app.after_request
+def set_anti_framing_headers(response):
+    response.headers["Content-Security-Policy"] = "frame-ancestors 'none';"
+    response.headers["X-Frame-Options"] = "DENY"
+    return response
+
+# Option 2: Using Flask-Talisman extension
+from flask_talisman import Talisman
+
+csp = {
+    'default-src': '\'self\'',
+    'frame-ancestors': '\'none\'',
+}
+Talisman(app, content_security_policy=csp, frame_options='DENY')</pre>
+            </div>
+          </div>
+
+          <!-- Nginx -->
+          <div class="tab-pane fade" id="tab-nginx">
+            <p class="small text-muted mb-2">In your Nginx <code class="code-badge">server</code> or <code class="code-badge">location</code> configuration block, use the <code class="code-badge">always</code> flag so headers are sent on all status codes:</p>
+            <div class="code-block position-relative">
+              <button class="copy-btn" data-target="code-nginx">Copy</button>
+              <pre id="code-nginx" class="mb-0"># Add to /etc/nginx/conf.d/security.conf or inside server {} block
+add_header Content-Security-Policy "frame-ancestors 'none';" always;
+add_header X-Frame-Options "DENY" always;
+
+# Optional: Add SameSite cookie defaults and MIME defense
+add_header X-Content-Type-Options "nosniff" always;
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;</pre>
+            </div>
+          </div>
+
+          <!-- Apache -->
+          <div class="tab-pane fade" id="tab-apache">
+            <p class="small text-muted mb-2">In Apache <code class="code-badge">httpd.conf</code>, <code class="code-badge">ssl.conf</code>, or <code class="code-badge">.htaccess</code> (requires <code class="code-badge">mod_headers</code>):</p>
+            <div class="code-block position-relative">
+              <button class="copy-btn" data-target="code-apache">Copy</button>
+              <pre id="code-apache" class="mb-0">&lt;IfModule mod_headers.c&gt;
+    Header always set Content-Security-Policy "frame-ancestors 'none';"
+    Header always set X-Frame-Options "DENY"
+    Header always set X-Content-Type-Options "nosniff"
+&lt;/IfModule&gt;</pre>
+            </div>
+          </div>
+
+          <!-- Node.js Helmet -->
+          <div class="tab-pane fade" id="tab-node">
+            <p class="small text-muted mb-2">In Node.js with Express, utilize the popular <code class="code-badge">helmet</code> security middleware:</p>
+            <div class="code-block position-relative">
+              <button class="copy-btn" data-target="code-node">Copy</button>
+              <pre id="code-node" class="mb-0">const express = require('express');
+const helmet = require('helmet');
+const app = express();
+
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        frameAncestors: ["'none'"], // or ["'self'"]
+      },
+    },
+    frameguard: {
+      action: 'deny', // sets X-Frame-Options: DENY
+    },
+  })
+);</pre>
+            </div>
+          </div>
+
+          <!-- Django -->
+          <div class="tab-pane fade" id="tab-django">
+            <p class="small text-muted mb-2">In Django <code class="code-badge">settings.py</code> with <code class="code-badge">django-csp</code>:</p>
+            <div class="code-block position-relative">
+              <button class="copy-btn" data-target="code-django">Copy</button>
+              <pre id="code-django" class="mb-0"># settings.py
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',
+    # ...
+]
+
+# Configure X-Frame-Options
+X_FRAME_OPTIONS = 'DENY'
+
+# Configure CSP frame-ancestors via django-csp
+CSP_FRAME_ANCESTORS = ("'none'",)</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 5: Testing & Verification Guidance -->
+      <div class="cyber-card p-4">
+        <h4 class="fw-bold text-white mb-3">
+          <i class="fa-solid fa-vial-circle-check text-info me-2"></i> Verification & Automated Testing
+        </h4>
+        <p class="text-muted small">
+          After applying configurations, verify compliance using terminal tools or automated CI/CD security linters:
+        </p>
+
+        <h6 class="text-white fw-bold small">1. Verify with cURL:</h6>
+        <div class="code-block mb-3 position-relative">
+          <button class="copy-btn" data-target="code-curl">Copy</button>
+          <pre id="code-curl" class="mb-0">curl -I -s https://your-domain.example.com | grep -Ei "(content-security-policy|x-frame-options)"</pre>
+        </div>
+
+        <h6 class="text-white fw-bold small">2. Automated CI/CD Regression Test (Python pytest):</h6>
+        <div class="code-block position-relative">
+          <button class="copy-btn" data-target="code-pytest">Copy</button>
+          <pre id="code-pytest" class="mb-0">def test_anti_framing_headers(client):
+    response = client.get("/")
+    assert response.headers.get("X-Frame-Options") == "DENY"
+    csp = response.headers.get("Content-Security-Policy", "")
+    assert "frame-ancestors 'none'" in csp</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar Quick Reference -->
+    <div class="col-lg-4">
+      <!-- Cookie Hardening Callout -->
+      <div class="cyber-card p-4 mb-4 border-success border-opacity-25 bg-success bg-opacity-10">
+        <h5 class="fw-bold text-success mb-2">
+          <i class="fa-solid fa-cookie-bite me-2"></i> SameSite Cookie Defense
+        </h5>
+        <p class="small text-muted mb-2">
+          In addition to anti-framing headers, setting <code class="code-badge">SameSite=Lax</code> or <code class="code-badge">SameSite=Strict</code> 
+          on all session cookies provides a secondary barrier against authenticated clickjacking:
+        </p>
+        <div class="code-block mb-2">Set-Cookie: sessionid=...; Secure; HttpOnly; SameSite=Lax</div>
+        <small class="text-dim">
+          When an attacker embeds a page into a cross-site iframe, modern browsers will withhold SameSite cookies, ensuring any framed action executes as an unauthenticated anonymous user.
+        </small>
+      </div>
+
+      <!-- Quick Checklist -->
+      <div class="cyber-card p-4">
+        <h6 class="text-white fw-bold mb-3 small text-uppercase">Hardening Checklist</h6>
+        <ul class="list-unstyled small d-flex flex-column gap-2 mb-0">
+          <li class="d-flex align-items-start gap-2">
+            <i class="fa-solid fa-square-check text-success mt-1"></i>
+            <span>Serve <code class="code-badge">Content-Security-Policy: frame-ancestors 'none'</code> globally.</span>
+          </li>
+          <li class="d-flex align-items-start gap-2">
+            <i class="fa-solid fa-square-check text-success mt-1"></i>
+            <span>Serve <code class="code-badge">X-Frame-Options: DENY</code> for legacy browser support.</span>
+          </li>
+          <li class="d-flex align-items-start gap-2">
+            <i class="fa-solid fa-square-check text-success mt-1"></i>
+            <span>Enforce <code class="code-badge">SameSite=Lax</code> or <code class="code-badge">Strict</code> on session cookies.</span>
+          </li>
+          <li class="d-flex align-items-start gap-2">
+            <i class="fa-solid fa-square-check text-success mt-1"></i>
+            <span>Apply anti-framing headers to error pages (404, 500) and redirect responses.</span>
+          </li>
+          <li class="d-flex align-items-start gap-2">
+            <i class="fa-solid fa-square-check text-success mt-1"></i>
+            <span>Avoid deprecated directives like <code class="code-badge">ALLOW-FROM</code>.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}About ClickjackShield | Ethical Security Architecture{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      <!-- About Header -->
+      <div class="text-center mb-5">
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-info bg-opacity-10 border border-info border-opacity-25 text-info small mb-2">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Engineering & Ethical Methodology</span>
+        </div>
+        <h2 class="fw-bold text-white">About the ClickjackShield Platform</h2>
+        <p class="text-muted small mx-auto" style="max-width: 620px;">
+          An advanced cybersecurity platform dedicated to evaluating HTTP anti-framing mechanisms, 
+          educating security engineers, and promoting defensive standards against UI redressing vulnerabilities.
+        </p>
+      </div>
+
+      <!-- Mission & Purpose Card -->
+      <div class="cyber-card p-4 p-md-5 mb-4">
+        <h4 class="fw-bold text-white mb-3">Project Objective & Scope</h4>
+        <p class="text-muted small leading-relaxed mb-3">
+          Clickjacking (UI Redressing) is a covert technique where an adversary deceives a victim into clicking on actionable elements within an invisible or obscured frame. By redressing genuine controls, the attacker triggers unintended actions such as funds transfer, credential alteration, or permission escalation within the victim's authenticated session.
+        </p>
+        <p class="text-muted small leading-relaxed mb-0">
+          The <strong>ClickjackShield</strong> project was developed to provide an end-to-end educational and diagnostic suite that:
+        </p>
+        <ul class="text-light small mt-2 mb-0">
+          <li>Performs rigorous, non-intrusive HTTP security header auditing.</li>
+          <li>Accurately parses and models <code class="code-badge">Content-Security-Policy: frame-ancestors</code> and <code class="code-badge">X-Frame-Options</code>.</li>
+          <li>Distinguishes defensive configuration deficiencies from confirmed exploitation.</li>
+          <li>Provides a strictly sandboxed local demonstration laboratory for safe visual learning.</li>
+          <li>Empowers developers with copy-paste remediation configurations for major production runtimes.</li>
+        </ul>
+      </div>
+
+      <!-- Standards Compliance Grid -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="cyber-card p-4 h-100 text-center">
+            <i class="fa-solid fa-file-contract text-info fs-2 mb-2"></i>
+            <h5 class="fw-bold text-white mb-1">RFC 7034</h5>
+            <small class="text-dim">HTTP-Header-Based Frame Options Specification</small>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="cyber-card p-4 h-100 text-center">
+            <i class="fa-solid fa-layer-group text-success fs-2 mb-2"></i>
+            <h5 class="fw-bold text-white mb-1">W3C CSP Level 3</h5>
+            <small class="text-dim">Content Security Policy frame-ancestors Directive Standards</small>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="cyber-card p-4 h-100 text-center">
+            <i class="fa-solid fa-shield-virus text-warning fs-2 mb-2"></i>
+            <h5 class="fw-bold text-white mb-1">OWASP Top 10</h5>
+            <small class="text-dim">Defensive Clickjacking Cheat Sheet & Mitigations</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Defensive Architecture Card -->
+      <div class="cyber-card p-4 p-md-5 mb-4 border-info border-opacity-25">
+        <h4 class="fw-bold text-white mb-3">Built-in Defensive Engineering</h4>
+        <p class="text-muted small leading-relaxed">
+          The scanner engine itself is engineered under strict defensive development principles:
+        </p>
+        <div class="row g-3 small text-muted">
+          <div class="col-md-6">
+            <strong class="text-light d-block mb-1"><i class="fa-solid fa-shield-halved text-info me-1"></i> SSRF Immunity:</strong>
+            DNS pre-resolution inspects all IP addresses, strictly blocking loopback (<code class="code-badge">127.0.0.1</code>), RFC 1918 private subnets, link-local addresses, and cloud metadata endpoints (<code class="code-badge">169.254.169.254</code>).
+          </div>
+          <div class="col-md-6">
+            <strong class="text-light d-block mb-1"><i class="fa-solid fa-route text-info me-1"></i> Revalidated Redirects:</strong>
+            Every redirect hop is followed individually up to a maximum depth of 5, re-verifying SSRF boundaries on each hop.
+          </div>
+          <div class="col-md-6">
+            <strong class="text-light d-block mb-1"><i class="fa-solid fa-lock text-info me-1"></i> HTTPS Enforcement:</strong>
+            Restricted to public TLS-secured endpoints to prevent man-in-the-middle manipulation of security headers.
+          </div>
+          <div class="col-md-6">
+            <strong class="text-light d-block mb-1"><i class="fa-solid fa-gauge-high text-info me-1"></i> Resource Boundaries:</strong>
+            Response size caps (512 KB), aggressive socket timeouts (6s), and sliding-window rate limiting defend against denial-of-service.
+          </div>
+        </div>
+      </div>
+
+      <!-- Responsible Disclosure Notice -->
+      <div class="cyber-card p-4 border-warning border-opacity-25 bg-warning bg-opacity-10">
+        <div class="d-flex align-items-start gap-3">
+          <i class="fa-solid fa-scale-balanced text-warning fs-3 mt-1"></i>
+          <div>
+            <h5 class="fw-bold text-warning mb-1">Ethical Use & Responsible Disclosure</h5>
+            <p class="small text-muted mb-0 leading-relaxed">
+              This application is designed exclusively for educational purposes, ethical security audits, and authorized penetration testing. 
+              Users must assess only applications they own or have received formal authorization to test. 
+              Do not perform security assessments against unauthorized infrastructure.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

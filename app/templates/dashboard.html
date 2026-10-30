@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}Security Dashboard | ClickjackShield{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Dashboard Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+    <div>
+      <h2 class="fw-bold text-white mb-1">
+        <i class="fa-solid fa-chart-pie text-info me-2"></i> Security Assessment Dashboard
+      </h2>
+      <p class="text-muted small mb-0">
+        Aggregated metrics, compliance distribution, and posture analytics for audited web applications.
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('scan.scanner_form') }}" class="btn btn-cyber-primary btn-sm">
+        <i class="fa-solid fa-plus me-1"></i> New Scan
+      </a>
+      <a href="{{ url_for('history.history_list') }}" class="btn btn-cyber-outline btn-sm">
+        <i class="fa-solid fa-clock-rotate-left me-1"></i> Full History
+      </a>
+    </div>
+  </div>
+
+  <!-- Defensive Assessment Disclaimer Banner -->
+  <div class="alert cyber-card border-info border-opacity-25 bg-info bg-opacity-10 text-light mb-4 py-3">
+    <div class="d-flex align-items-center gap-3">
+      <i class="fa-solid fa-circle-info text-info fs-4"></i>
+      <div class="small">
+        <strong class="text-info">Analysis Interpretation Standard:</strong>
+        Missing security headers are classified as <span class="badge badge-status badge-potential-risk py-0">Potential Risk</span> 
+        rather than confirmed exploits. Actual vulnerability depends on context, session cookie boundaries (SameSite=Lax/Strict), 
+        authentication state, and whether the targeted page contains sensitive state-changing endpoints.
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 Stat Metric Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+      <div class="stat-widget">
+        <div class="stat-icon cyan">
+          <i class="fa-solid fa-globe"></i>
+        </div>
+        <div>
+          <div class="stat-val">{{ stats.total }}</div>
+          <div class="stat-label">Total Assessments</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+      <div class="stat-widget">
+        <div class="stat-icon emerald">
+          <i class="fa-solid fa-shield-check"></i>
+        </div>
+        <div>
+          <div class="stat-val text-success">{{ stats.protected }}</div>
+          <div class="stat-label">Recognized Protections</div>
+          <small class="text-dim">{{ stats.protected_pct }}% of audited sites</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+      <div class="stat-widget">
+        <div class="stat-icon amber">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <div class="stat-val text-warning">{{ stats.potential_risk }}</div>
+          <div class="stat-label">Missing Protections</div>
+          <small class="text-dim">{{ stats.risk_pct }}% potential risks</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+      <div class="stat-widget">
+        <div class="stat-icon slate">
+          <i class="fa-solid fa-circle-question"></i>
+        </div>
+        <div>
+          <div class="stat-val text-muted">{{ stats.inconclusive }}</div>
+          <div class="stat-label">Inconclusive Audits</div>
+          <small class="text-dim">4xx/5xx errors or timeouts</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Access Hub Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <a href="{{ url_for('scan.scanner_form') }}" class="cyber-card p-3 d-block text-decoration-none h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="stat-icon cyan" style="width: 42px; height: 42px; font-size: 1.1rem;">
+            <i class="fa-solid fa-crosshairs"></i>
+          </div>
+          <div>
+            <h6 class="text-white fw-bold mb-0">HTTP Scanner</h6>
+            <small class="text-muted">Analyze an HTTPS endpoint</small>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-3">
+      <a href="{{ url_for('lab.lab_workspace') }}" class="cyber-card p-3 d-block text-decoration-none h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="stat-icon emerald" style="width: 42px; height: 42px; font-size: 1.1rem;">
+            <i class="fa-solid fa-flask-vial"></i>
+          </div>
+          <div>
+            <h6 class="text-white fw-bold mb-0">Educational Lab</h6>
+            <small class="text-muted">Interactive safe simulation</small>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-3">
+      <a href="{{ url_for('prevention.prevention_guide') }}" class="cyber-card p-3 d-block text-decoration-none h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="stat-icon amber" style="width: 42px; height: 42px; font-size: 1.1rem;">
+            <i class="fa-solid fa-book-shield"></i>
+          </div>
+          <div>
+            <h6 class="text-white fw-bold mb-0">Prevention Guide</h6>
+            <small class="text-muted">Hardening configurations</small>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-3">
+      <a href="{{ url_for('history.history_list') }}" class="cyber-card p-3 d-block text-decoration-none h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="stat-icon slate" style="width: 42px; height: 42px; font-size: 1.1rem;">
+            <i class="fa-solid fa-file-invoice"></i>
+          </div>
+          <div>
+            <h6 class="text-white fw-bold mb-0">Security Reports</h6>
+            <small class="text-muted">PDF & JSON audit exports</small>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Visual Charts & Analytics Section -->
+  <div class="row g-4 mb-4">
+    <!-- Chart 1: Assessment Posture Doughnut -->
+    <div class="col-lg-6">
+      <div class="cyber-card h-100">
+        <div class="cyber-card-header">
+          <h5 class="fw-bold text-white mb-0">
+            <i class="fa-solid fa-chart-donut text-info me-2"></i> Security Posture Distribution
+          </h5>
+          <span class="badge bg-secondary bg-opacity-25 text-dim border border-secondary small">
+            Live Database
+          </span>
+        </div>
+        <div class="cyber-card-body d-flex flex-column justify-content-center align-items-center" style="min-height: 280px;">
+          <div style="position: relative; width: 100%; max-width: 340px; height: 240px;">
+            <canvas id="postureChart" 
+                    data-total="{{ stats.total }}"
+                    data-protected="{{ stats.protected }}"
+                    data-risk="{{ stats.potential_risk }}"
+                    data-inconclusive="{{ stats.inconclusive }}"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart 2: Anti-Framing Defense Mechanisms Breakdown -->
+    <div class="col-lg-6">
+      <div class="cyber-card h-100">
+        <div class="cyber-card-header">
+          <h5 class="fw-bold text-white mb-0">
+            <i class="fa-solid fa-layer-group text-info me-2"></i> Defense Mechanisms Breakdown
+          </h5>
+          <span class="badge bg-secondary bg-opacity-25 text-dim border border-secondary small">
+            RFC 7034 vs CSP3
+          </span>
+        </div>
+        <div class="cyber-card-body" style="min-height: 280px;">
+          <div style="position: relative; width: 100%; height: 240px;">
+            <canvas id="mechanismsChart"
+                    data-xfo="{{ stats.xfo_count }}"
+                    data-csp="{{ stats.csp_count }}"
+                    data-both="{{ stats.both_count }}"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Scan History Table -->
+  <div class="cyber-card">
+    <div class="cyber-card-header">
+      <h5 class="fw-bold text-white mb-0">
+        <i class="fa-solid fa-clock-rotate-left text-info me-2"></i> Recent Security Assessments
+      </h5>
+      <a href="{{ url_for('history.history_list') }}" class="btn btn-cyber-outline btn-sm">
+        View All ({{ stats.total }})
+      </a>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-cyber mb-0">
+        <thead>
+          <tr>
+            <th>Target Hostname</th>
+            <th>Outcome</th>
+            <th>Confidence</th>
+            <th>HTTP Status</th>
+            <th>X-Frame-Options</th>
+            <th>CSP frame-ancestors</th>
+            <th>Timestamp</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if recent_scans %}
+            {% for scan in recent_scans %}
+              <tr>
+                <td>
+                  <div class="fw-semibold text-white">{{ scan.hostname }}</div>
+                  <small class="text-dim text-truncate d-block" style="max-width: 220px;">{{ scan.url }}</small>
+                </td>
+                <td>
+                  {% if scan.outcome == 'Protected' %}
+                    <span class="badge-status badge-protected">
+                      <i class="fa-solid fa-shield-check"></i> Protected
+                    </span>
+                  {% elif scan.outcome == 'Potential Risk' %}
+                    <span class="badge-status badge-potential-risk">
+                      <i class="fa-solid fa-triangle-exclamation"></i> Potential Risk
+                    </span>
+                  {% else %}
+                    <span class="badge-status badge-inconclusive">
+                      <i class="fa-solid fa-circle-question"></i> Inconclusive
+                    </span>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="badge bg-dark text-info border border-secondary small">
+                    {{ scan.confidence }}
+                  </span>
+                </td>
+                <td>
+                  <span class="font-monospace small text-light">
+                    {{ scan.http_status or 'N/A' }}
+                  </span>
+                </td>
+                <td>
+                  {% if scan.xfo_present %}
+                    <span class="code-badge text-success">{{ scan.xfo_status }}</span>
+                  {% else %}
+                    <span class="code-badge text-muted">Missing</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if scan.csp_present %}
+                    <span class="code-badge text-info">{{ scan.csp_status }}</span>
+                  {% else %}
+                    <span class="code-badge text-muted">Missing</span>
+                  {% endif %}
+                </td>
+                <td class="text-muted small">
+                  {{ scan.scan_timestamp[:19].replace('T', ' ') }}
+                </td>
+                <td class="text-end">
+                  <div class="btn-group btn-group-sm">
+                    <a href="{{ url_for('scan.scan_results', assessment_id=scan.id) }}" class="btn btn-cyber-outline" title="View Results">
+                      <i class="fa-solid fa-eye"></i>
+                    </a>
+                    <a href="{{ url_for('reports.export_pdf', assessment_id=scan.id) }}" class="btn btn-cyber-outline" title="PDF Report">
+                      <i class="fa-solid fa-file-pdf text-danger"></i>
+                    </a>
+                    <a href="{{ url_for('reports.export_json', assessment_id=scan.id) }}" class="btn btn-cyber-outline" title="JSON Data">
+                      <i class="fa-solid fa-file-code text-info"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" class="text-center py-5 text-muted">
+                <i class="fa-solid fa-shield-virus fs-2 text-dim mb-2 d-block"></i>
+                No security assessments recorded yet. Run your first assessment now!
+                <div class="mt-3">
+                  <a href="{{ url_for('scan.scanner_form') }}" class="btn btn-cyber-primary btn-sm">
+                    <i class="fa-solid fa-radar me-1"></i> Launch First Scan
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

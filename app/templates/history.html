@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Assessment History & Audit Logs | ClickjackShield{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Page Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+    <div>
+      <h2 class="fw-bold text-white mb-1">
+        <i class="fa-solid fa-clock-rotate-left text-info me-2"></i> Assessment History
+      </h2>
+      <p class="text-muted small mb-0">
+        Review, filter, search, and manage historical clickjacking security audits stored in the database.
+      </p>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('scan.scanner_form') }}" class="btn btn-cyber-primary btn-sm">
+        <i class="fa-solid fa-plus me-1"></i> New Assessment
+      </a>
+      {% if assessments %}
+        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#clearAllModal">
+          <i class="fa-solid fa-trash-can me-1"></i> Clear All History
+        </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Search & Filter Controls Card -->
+  <div class="cyber-card p-3 mb-4">
+    <form method="GET" action="{{ url_for('history.history_list') }}" class="row g-2 align-items-center">
+      <!-- Search Input -->
+      <div class="col-md-5">
+        <div class="input-group">
+          <span class="input-group-text bg-secondary bg-opacity-25 border-secondary text-info">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </span>
+          <input type="text" 
+                 name="q" 
+                 class="form-control form-cyber" 
+                 placeholder="Search by hostname or URL..." 
+                 value="{{ search_query }}">
+        </div>
+      </div>
+
+      <!-- Outcome Filter -->
+      <div class="col-md-3">
+        <select name="outcome" class="form-select form-cyber">
+          <option value="all" {% if outcome_filter == 'all' %}selected{% endif %}>All Postures</option>
+          <option value="Protected" {% if outcome_filter == 'Protected' %}selected{% endif %}>Protected Only</option>
+          <option value="Potential Risk" {% if outcome_filter == 'Potential Risk' %}selected{% endif %}>Potential Risk Only</option>
+          <option value="Inconclusive" {% if outcome_filter == 'Inconclusive' %}selected{% endif %}>Inconclusive Only</option>
+        </select>
+      </div>
+
+      <!-- Sort Filter -->
+      <div class="col-md-2">
+        <select name="sort" class="form-select form-cyber">
+          <option value="date_desc" {% if sort_by == 'date_desc' %}selected{% endif %}>Newest First</option>
+          <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>Oldest First</option>
+          <option value="hostname" {% if sort_by == 'hostname' %}selected{% endif %}>Hostname (A-Z)</option>
+          <option value="status" {% if sort_by == 'status' %}selected{% endif %}>Status Posture</option>
+        </select>
+      </div>
+
+      <!-- Submit & Reset Buttons -->
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-cyber-primary w-100">
+          Filter
+        </button>
+        {% if search_query or outcome_filter != 'all' or sort_by != 'date_desc' %}
+          <a href="{{ url_for('history.history_list') }}" class="btn btn-cyber-outline" title="Reset Filters">
+            <i class="fa-solid fa-xmark"></i>
+          </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  <!-- Historical Assessments Table -->
+  <div class="cyber-card">
+    <div class="table-responsive">
+      <table class="table table-cyber mb-0">
+        <thead>
+          <tr>
+            <th>Target Hostname</th>
+            <th>Outcome Status</th>
+            <th>Confidence</th>
+            <th>HTTP Status</th>
+            <th>X-Frame-Options</th>
+            <th>CSP frame-ancestors</th>
+            <th>Scan Date (UTC)</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if assessments %}
+            {% for a in assessments %}
+              <tr>
+                <td>
+                  <div class="fw-bold text-white">{{ a.hostname }}</div>
+                  <small class="text-dim text-truncate d-block" style="max-width: 220px;">
+                    {{ a.final_url }}
+                  </small>
+                </td>
+                <td>
+                  {% if a.outcome == 'Protected' %}
+                    <span class="badge-status badge-protected">
+                      <i class="fa-solid fa-shield-check"></i> Protected
+                    </span>
+                  {% elif a.outcome == 'Potential Risk' %}
+                    <span class="badge-status badge-potential-risk">
+                      <i class="fa-solid fa-triangle-exclamation"></i> Potential Risk
+                    </span>
+                  {% else %}
+                    <span class="badge-status badge-inconclusive">
+                      <i class="fa-solid fa-circle-question"></i> Inconclusive
+                    </span>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="badge bg-dark text-info border border-secondary small">{{ a.confidence }}</span>
+                </td>
+                <td>
+                  <span class="font-monospace text-light small">
+                    {{ a.http_status or 'N/A' }}
+                  </span>
+                </td>
+                <td>
+                  {% if a.xfo_present %}
+                    <span class="code-badge text-success">{{ a.xfo_status }}</span>
+                  {% else %}
+                    <span class="code-badge text-muted">Missing</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if a.csp_present %}
+                    <span class="code-badge text-info">{{ a.csp_status }}</span>
+                  {% else %}
+                    <span class="code-badge text-muted">Missing</span>
+                  {% endif %}
+                </td>
+                <td class="text-muted small">
+                  {{ a.scan_timestamp[:19].replace('T', ' ') }}
+                </td>
+                <td class="text-end">
+                  <div class="btn-group btn-group-sm">
+                    <a href="{{ url_for('scan.scan_results', assessment_id=a.id) }}" class="btn btn-cyber-outline" title="View Results">
+                      <i class="fa-solid fa-eye"></i>
+                    </a>
+                    <a href="{{ url_for('reports.export_pdf', assessment_id=a.id) }}" class="btn btn-cyber-outline" title="Download PDF">
+                      <i class="fa-solid fa-file-pdf text-danger"></i>
+                    </a>
+                    <a href="{{ url_for('reports.export_json', assessment_id=a.id) }}" class="btn btn-cyber-outline" title="Export JSON">
+                      <i class="fa-solid fa-file-code text-info"></i>
+                    </a>
+                    <!-- Single Delete Button -->
+                    <button type="button" 
+                            class="btn btn-cyber-outline text-danger" 
+                            title="Delete Record"
+                            data-bs-toggle="modal" 
+                            data-bs-target="#deleteModal{{ a.id[:8] }}">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </div>
+
+                  <!-- Per-Record Delete Confirmation Modal -->
+                  <div class="modal fade" id="deleteModal{{ a.id[:8] }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered text-start">
+                      <div class="modal-content cyber-card border-danger">
+                        <div class="modal-header border-secondary">
+                          <h6 class="modal-title text-white fw-bold">
+                            <i class="fa-solid fa-triangle-exclamation text-danger me-2"></i> Confirm Record Deletion
+                          </h6>
+                          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body small text-muted">
+                          Are you sure you want to permanently delete the audit record for 
+                          <strong class="text-white">{{ a.hostname }}</strong> (ID: {{ a.id[:8] }}...)? 
+                          This action cannot be undone.
+                        </div>
+                        <div class="modal-footer border-secondary">
+                          <button type="button" class="btn btn-cyber-outline btn-sm" data-bs-dismiss="modal">Cancel</button>
+                          <form action="{{ url_for('history.delete_assessment', assessment_id=a.id) }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" class="text-center py-5 text-muted">
+                <i class="fa-solid fa-folder-open fs-2 text-dim mb-2 d-block"></i>
+                No assessment records match your current criteria.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Clear All History Modal -->
+<div class="modal fade" id="clearAllModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content cyber-card border-danger">
+      <div class="modal-header border-secondary">
+        <h6 class="modal-title text-white fw-bold">
+          <i class="fa-solid fa-triangle-exclamation text-danger me-2"></i> Clear Complete Audit History
+        </h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body small text-muted">
+        This operation will permanently purge all stored security assessments from the local SQLite database. 
+        Are you sure you wish to continue?
+      </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-cyber-outline btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <form action="{{ url_for('history.clear_all_history') }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-danger btn-sm">Purge All Records</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

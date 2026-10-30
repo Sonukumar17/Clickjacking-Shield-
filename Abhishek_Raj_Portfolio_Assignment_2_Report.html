@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Assignment No. 2: Student Portfolio & Project Management System</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1e293b; max-width: 850px; margin: 40px auto; padding: 0 20px; }
+  h1 { color: #101827; font-size: 26px; margin-bottom: 4px; }
+  .subtitle { color: #7c3aed; font-style: italic; font-size: 16px; margin-bottom: 24px; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  th, td { border: 1px solid #e2e8f0; padding: 10px 14px; text-align: left; }
+  th { background-color: #101827; color: white; }
+  tr:nth-child(even) { background-color: #f8fafc; }
+  h2 { color: #101827; font-size: 20px; border-bottom: 2px solid #7c3aed; padding-bottom: 6px; margin-top: 28px; }
+  h3 { color: #7c3aed; font-size: 16px; margin-top: 18px; }
+  ul { padding-left: 20px; }
+  li { margin-bottom: 6px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: bold; background-color: #d1fae5; color: #065f46; font-size: 12px; }
+  .box { background: #f8fafc; border-left: 4px solid #7c3aed; padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; }
+</style>
+</head>
+<body>
+
+<h1>Assignment No. 2: Student Portfolio & Project Management System</h1>
+<div class="subtitle">Comprehensive Technical Design, Implementation & Deployment Report</div>
+
+<table>
+  <tr><td><strong>Student Name:</strong></td><td>Abhishek Raj</td></tr>
+  <tr><td><strong>Academic Program:</strong></td><td>B.Tech in Computer Science · Semester V (2026–27)</td></tr>
+  <tr><td><strong>Course:</strong></td><td>Advanced Web Development (AWDP) — Assignment No. 2</td></tr>
+  <tr><td><strong>GitHub Repository:</strong></td><td><a href="https://github.com/Abhi-5423/Public-Portfolio" target="_blank">https://github.com/Abhi-5423/Public-Portfolio</a></td></tr>
+  <tr><td><strong>Technology Stack:</strong></td><td>PHP 8.2, Bootstrap 5.3, JavaScript, JSON/MySQL/MongoDB, Docker</td></tr>
+  <tr><td><strong>Deployment Platform:</strong></td><td>Render Cloud (Dockerized Web Service)</td></tr>
+</table>
+
+<h2>1. Project Executive Summary</h2>
+<p>The <strong>Student Portfolio & Project Management System</strong> is an enterprise-grade, modern web application developed with <strong>PHP 8.2</strong> and <strong>Bootstrap 5</strong>. It combines an elegant, responsive public-facing portfolio showcasing technical skills, academic background, and selected engineering builds with a secure administrative Content Management System (CMS) that supports full CRUD operations over portfolio data.</p>
+<p>Designed according to modern software architecture principles, it incorporates strict input validation, CSRF mitigation, session isolation, and a modular Repository Factory pattern supporting interchangeable storage backends (File-based JSON, MySQL, and MongoDB).</p>
+
+<h2>2. Architectural Design & Design Patterns</h2>
+<h3>2.1 The Repository Factory Pattern</h3>
+<p>The application decouples business logic, validation, and presentation from the persistence layer using the <strong>Repository Design Pattern</strong>. A centralized <code>RepositoryFactory</code> inspects the environment configuration (<code>DB_DRIVER</code>) and instantiates the appropriate concrete repository implementation:</p>
+<ul>
+  <li><strong>File Driver (Default):</strong> Zero-setup JSON document store (<code>storage/database.json</code>) with thread-safe file locking. Ideal for standalone local execution and lightweight containerized deployments.</li>
+  <li><strong>MySQL Driver:</strong> Relational storage using PDO prepared statements, foreign key constraints, and normalized tables.</li>
+  <li><strong>MongoDB Driver:</strong> Document-based NoSQL storage utilizing typed BSON ObjectIDs and schema indexing.</li>
+</ul>
+
+<h3>2.2 Front-Controller Routing & Asset Delivery</h3>
+<p>The custom router (<code>router.php</code>) serves as the local development and container front-controller. It resolves static resources (<code>/assets/</code>, <code>/uploads/</code>) with explicit RFC-compliant MIME types (e.g., <code>text/css</code>, <code>application/javascript</code>, <code>image/webp</code>), eliminating MIME-type sniffing conflicts in modern browsers. It also handles administrative directory redirects (<code>/admin</code> &rarr; <code>/admin/dashboard.php</code>) and clean URL routing.</p>
+
+<h2>3. Core Modules & Functionality</h2>
+<h3>3.1 Public Portfolio Experience</h3>
+<ul>
+  <li><strong>Home Page (<code>index.php</code>):</strong> Dynamic hero introducing Abhishek Raj, career goals, technical skillset progress bars, and highlighted projects.</li>
+  <li><strong>About Me (<code>about.php</code>):</strong> Comprehensive academic background (B.Tech Computer Science, Semester V), educational timeline, and technical objectives.</li>
+  <li><strong>Skills Matrix (<code>skills.php</code>):</strong> Database-driven skill showcase categorized by Frontend, Backend, Databases, and Tools with live percentage bars.</li>
+  <li><strong>Projects Showcase (<code>projects.php</code> & <code>project.php</code>):</strong> Filterable project cards detailing technology badges, synopsis, GitHub source code links, and live demo buttons.</li>
+  <li><strong>Contact Portal (<code>contact.php</code>):</strong> Contact form with client/server validation and CSRF token protection that persists incoming inquiries to the database.</li>
+</ul>
+
+<h3>3.2 Administrative Management System (<code>/admin</code>)</h3>
+<ul>
+  <li><strong>Admin Authentication (<code>admin/login.php</code>):</strong> Session-protected authentication interface utilizing <code>password_verify()</code> against bcrypt password hashes.</li>
+  <li><strong>Real-Time Dashboard (<code>admin/dashboard.php</code>):</strong> Executive statistics summarizing total project count, active skills, and received inquiries.</li>
+  <li><strong>Project Management (<code>admin/projects/</code>):</strong> Comprehensive management allowing administrators to add, modify, delete, and feature projects with image upload handling.</li>
+  <li><strong>Skills Management (<code>admin/skills/</code>):</strong> Ability to add new proficiencies, update percentages, and re-order toolkit categories.</li>
+  <li><strong>Communications Inbox (<code>admin/contacts/</code>):</strong> Management portal to inspect incoming messages, contact emails, and clear resolved communications.</li>
+</ul>
+
+<h2>4. Security Architecture & Robustness</h2>
+<ul>
+  <li><strong>CSRF Mitigation:</strong> Every state-changing form incorporates a cryptographically secure random token validated via <code>verify_csrf()</code> before request processing.</li>
+  <li><strong>XSS Prevention:</strong> Output rendering is systematically passed through the <code>e()</code> helper invoking <code>htmlspecialchars()</code> with <code>ENT_QUOTES</code> and UTF-8 encoding.</li>
+  <li><strong>Upload Hardening:</strong> Uploads undergo <code>finfo</code> MIME-type verification (JPEG, PNG, WEBP), file size enforcement (max 2MB), and random hex renaming to prevent directory traversal or remote script execution.</li>
+  <li><strong>Credential Storage:</strong> Credentials are encrypted using PHP's standard <code>password_hash()</code> with <code>PASSWORD_BCRYPT</code>.</li>
+  <li><strong>Session Security:</strong> Admin routes invoke <code>require_admin()</code> enforcing authenticated session existence, <code>HttpOnly</code> cookies, and <code>Lax SameSite</code> policy.</li>
+</ul>
+
+<h2>5. Satisfaction of Assignment No. 2 Requirements</h2>
+<table>
+  <tr>
+    <th>Requirement</th>
+    <th>Implementation Details</th>
+    <th>Status</th>
+  </tr>
+  <tr>
+    <td><strong>1. Responsive Web Stack</strong></td>
+    <td>Bootstrap 5.3, custom dark-gradient aesthetics, responsive navigation drawer, and vanilla validation scripts.</td>
+    <td><span class="badge">Satisfied</span></td>
+  </tr>
+  <tr>
+    <td><strong>2. Customised Content</strong></td>
+    <td>Tailored to student Abhishek Raj (Semester V B.Tech), highlighting personal builds and academic goals.</td>
+    <td><span class="badge">Satisfied</span></td>
+  </tr>
+  <tr>
+    <td><strong>3. Database & CRUD</strong></td>
+    <td>Real database INSERT for contact form; full CREATE, READ, UPDATE, DELETE for Projects and Skills across pluggable drivers.</td>
+    <td><span class="badge">Satisfied</span></td>
+  </tr>
+  <tr>
+    <td><strong>4. Cloud Deployment</strong></td>
+    <td>Containerized with Docker (PHP 8.2 Alpine) and <code>render.yaml</code> infrastructure-as-code for zero-downtime deployment on Render.</td>
+    <td><span class="badge">Satisfied</span></td>
+  </tr>
+  <tr>
+    <td><strong>5. Source Submission</strong></td>
+    <td>Complete source code tracked under Git and publicly hosted on GitHub at <a href="https://github.com/Abhi-5423/Public-Portfolio" target="_blank">https://github.com/Abhi-5423/Public-Portfolio</a>.</td>
+    <td><span class="badge">Satisfied</span></td>
+  </tr>
+</table>
+
+<h2>6. Deployment & Access Credentials</h2>
+<div class="box">
+  <p><strong>• Local Execution:</strong> Run <code>C:\xampp\php\php.exe -S 127.0.0.1:8000 router.php</code> inside the <code>student-portfolio</code> directory and open <code>http://localhost:8000</code>.</p>
+  <p><strong>• Cloud Hosting (Render):</strong> Link GitHub repository (<code>https://github.com/Abhi-5423/Public-Portfolio</code>) to Render as a Docker Web Service.</p>
+  <p><strong>• Default Admin Credentials:</strong> Username: <code>admin</code> | Password: <code>Admin@12345</code></p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Educational Clickjacking Lab | ClickjackShield{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Page Header -->
+  <div class="text-center mb-4">
+    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-info bg-opacity-10 border border-info border-opacity-25 text-info small mb-2">
+      <i class="fa-solid fa-flask-vial"></i>
+      <span>Controlled Safe Demonstration Environment</span>
+    </div>
+    <h2 class="fw-bold text-white">Safe Clickjacking Educational Laboratory</h2>
+    <p class="text-muted small mx-auto" style="max-width: 680px;">
+      Explore how UI Redressing (Clickjacking) tricks users by aligning invisible framed elements over decoy interfaces, 
+      and observe how browser-enforced anti-framing headers completely eliminate the attack vector.
+    </p>
+  </div>
+
+  <!-- Safety Boundary Notice Box -->
+  <div class="cyber-card p-3 mb-4 border-warning border-opacity-25 bg-warning bg-opacity-10">
+    <div class="d-flex align-items-center gap-3">
+      <i class="fa-solid fa-shield-halved text-warning fs-3"></i>
+      <div class="small">
+        <strong class="text-warning">Safe Educational Environment Notice:</strong>
+        This laboratory executes exclusively against harmless local mock pages controlled by this application. 
+        It does not connect to real banking, social media, payment, or third-party targets, and does not collect credentials or trigger unauthorized actions.
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Controls Bar -->
+  <div class="cyber-card p-3 mb-4">
+    <div class="row g-3 align-items-center">
+      <!-- Target Selection -->
+      <div class="col-lg-4 col-md-6">
+        <label for="targetSelect" class="form-label small text-dim mb-1 fw-bold">Select Demonstration Target</label>
+        <select id="targetSelect" class="form-select form-cyber">
+          <option value="unprotected" selected>Page A: Demonstration Page (Unprotected)</option>
+          <option value="protected">Page B: Protected Page (CSP & X-Frame-Options)</option>
+        </select>
+      </div>
+
+      <!-- Opacity Slider -->
+      <div class="col-lg-5 col-md-6">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <label for="opacitySlider" class="form-label small text-dim mb-0 fw-bold">
+            Victim Iframe Opacity: <span id="opacityVal" class="text-info font-monospace">35%</span>
+          </label>
+          <span class="text-dim small">(0% = Invisible Attack, 100% = Fully Exposed)</span>
+        </div>
+        <input type="range" class="form-range" id="opacitySlider" min="0" max="100" value="35">
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="col-lg-3 text-lg-end">
+        <button id="labResetBtn" class="btn btn-cyber-outline btn-sm w-100 py-2">
+          <i class="fa-solid fa-rotate-left me-1"></i> Reset Laboratory
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Demonstration Stage -->
+  <div class="row g-4 mb-4">
+    <!-- Visual Simulation Canvas -->
+    <div class="col-lg-7">
+      <div class="cyber-card p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="small fw-bold text-white">
+            <i class="fa-solid fa-desktop text-info me-1"></i> Attacker Controlled Framing Sandbox
+          </span>
+          <span class="badge bg-secondary bg-opacity-50 text-dim small">Live Visual Canvas</span>
+        </div>
+
+        <!-- Simulated Browser Window Container -->
+        <div class="lab-stage" id="labStage">
+          <!-- The Embedded Target Iframe -->
+          <iframe id="labFrame" 
+                  class="lab-target-frame" 
+                  src="{{ url_for('lab.demo_target_unprotected') }}" 
+                  style="opacity: 0.35;"
+                  title="Demonstration Target Page"></iframe>
+
+          <!-- Browser Blocked Framing Alert (Visible when Target B is selected) -->
+          <div id="blockedBanner" class="blocked-placeholder d-none">
+            <i class="fa-solid fa-ban fs-1 mb-3"></i>
+            <h5 class="fw-bold mb-2">Browser Framing Refused</h5>
+            <p class="small text-muted mb-0" style="max-width: 400px;">
+              The browser strictly refused to frame this page because the server sent:
+              <br/><code class="text-info">Content-Security-Policy: frame-ancestors 'none';</code>
+              <br/><code class="text-info">X-Frame-Options: DENY</code>
+            </p>
+          </div>
+
+          <!-- Attacker Decoy Overlay Layer -->
+          <div class="lab-attacker-overlay" id="attackerOverlay">
+            <div class="decoy-box" id="attackerDecoyBtn" title="Click to test simulated interaction">
+              <div class="fw-bold fs-5 mb-1">
+                <i class="fa-solid fa-gift me-2"></i> CONGRATULATIONS!
+              </div>
+              <div class="small mb-2">You have been selected to claim a $1,000 Reward Voucher!</div>
+              <button class="btn btn-light fw-bold btn-sm px-4 shadow-sm">
+                CLAIM REWARD NOW &raquo;
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-2 small text-dim">
+          <span><i class="fa-solid fa-arrows-to-dot text-danger me-1"></i> Decoy button is aligned over the framed action button</span>
+          <span>Click the decoy box above to test interception</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Side Analysis & Event Log Console -->
+    <div class="col-lg-5">
+      <div class="cyber-card p-3 h-100 d-flex flex-column">
+        <!-- Live HTTP Header Inspector for Selected Target -->
+        <h6 class="fw-bold text-white mb-2">
+          <i class="fa-solid fa-server text-info me-1"></i> Active Target HTTP Headers
+        </h6>
+        <div id="labHeaderDetails" class="p-3 rounded bg-dark border border-secondary mb-3">
+          <!-- Populated dynamically via lab.js -->
+        </div>
+
+        <!-- Real-Time Event Log Stream -->
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="fw-bold text-white mb-0">
+            <i class="fa-solid fa-terminal text-info me-1"></i> Real-Time Interaction Log
+          </h6>
+          <span class="badge bg-secondary bg-opacity-25 text-dim small font-monospace">Events</span>
+        </div>
+        <div id="labEventLog" class="p-2 rounded bg-dark border border-secondary flex-grow-1 overflow-auto font-monospace small" style="min-height: 220px; max-height: 280px;">
+          <div class="p-2 rounded bg-secondary bg-opacity-25 text-info mb-2">
+            [SYS] Laboratory initialized. Target A (Unprotected) loaded at 35% opacity.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Educational Explainer Cards Grid -->
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="cyber-card p-4 h-100">
+        <h5 class="fw-bold text-white mb-2">
+          <i class="fa-solid fa-circle-question text-info me-2"></i> How UI Redressing Works
+        </h5>
+        <p class="text-muted small mb-2">
+          In a clickjacking attack, the adversary embeds a legitimate application into a transparent or hidden iframe 
+          (<code class="code-badge">opacity: 0</code> or <code class="code-badge">z-index: 9999</code>). 
+          The attacker layers enticing graphic elements ("Play Video", "Claim Gift", "Close Ad") directly above sensitive buttons on the victim application (e.g. "Transfer Funds", "Delete Account", "Authorize OAuth").
+        </p>
+        <p class="text-muted small mb-0">
+          When the victim clicks what appears to be an innocuous decoy button, the click actually registers on the underlying framed application, 
+          triggering an unintended state change with the victim's authenticated session!
+        </p>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="cyber-card p-4 h-100">
+        <h5 class="fw-bold text-white mb-2">
+          <i class="fa-solid fa-shield-halved text-success me-2"></i> How Anti-Framing Headers Defeat It
+        </h5>
+        <p class="text-muted small mb-2">
+          When the protected server responds with <code class="code-badge">Content-Security-Policy: frame-ancestors 'none'</code> 
+          or <code class="code-badge">X-Frame-Options: DENY</code>, the client browser enforces this directive before rendering.
+        </p>
+        <p class="text-muted small mb-0">
+          The browser abruptly aborts framing, replaces the frame content with a blank error or block screen, 
+          and prevents the attacker from rendering or aligning any elements. The attack vector is completely neutralized!
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/lab.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block title %}Assessment Results: {{ assessment.hostname }} | ClickjackShield{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Top Navigation Breadcrumbs & Actions -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1 small">
+          <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}" class="text-info text-decoration-none">Dashboard</a></li>
+          <li class="breadcrumb-item"><a href="{{ url_for('scan.scanner_form') }}" class="text-info text-decoration-none">Scanner</a></li>
+          <li class="breadcrumb-item active text-muted" aria-current="page">Assessment Results</li>
+        </ol>
+      </nav>
+      <h2 class="fw-bold text-white mb-0">
+        Assessment Results: <span class="text-info">{{ assessment.hostname }}</span>
+      </h2>
+    </div>
+
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{{ url_for('reports.view_report', assessment_id=assessment.id) }}" class="btn btn-cyber-primary btn-sm">
+        <i class="fa-solid fa-file-lines me-1"></i> Full Report
+      </a>
+      <a href="{{ url_for('reports.export_pdf', assessment_id=assessment.id) }}" class="btn btn-cyber-outline btn-sm">
+        <i class="fa-solid fa-file-pdf me-1 text-danger"></i> PDF Export
+      </a>
+      <a href="{{ url_for('reports.export_json', assessment_id=assessment.id) }}" class="btn btn-cyber-outline btn-sm">
+        <i class="fa-solid fa-file-code me-1 text-info"></i> JSON
+      </a>
+      <a href="{{ url_for('scan.scanner_form') }}" class="btn btn-cyber-outline btn-sm">
+        <i class="fa-solid fa-rotate-right me-1"></i> New Scan
+      </a>
+    </div>
+  </div>
+
+  <!-- Primary Posture Banner Card -->
+  <div class="cyber-card p-4 mb-4 
+    {% if assessment.outcome == 'Protected' %}
+      border-success border-opacity-50 bg-success bg-opacity-10
+    {% elif assessment.outcome == 'Potential Risk' %}
+      border-warning border-opacity-50 bg-warning bg-opacity-10
+    {% else %}
+      border-secondary border-opacity-50 bg-secondary bg-opacity-10
+    {% endif %}">
+    <div class="row align-items-center gy-3">
+      <div class="col-md-8">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="text-dim small text-uppercase fw-bold letter-spacing-1">Assessment Posture</span>
+          <span class="badge bg-dark border border-secondary text-info small">Confidence: {{ assessment.confidence }}</span>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          {% if assessment.outcome == 'Protected' %}
+            <i class="fa-solid fa-circle-check text-success fs-1"></i>
+            <div>
+              <h3 class="fw-bold text-success mb-1">PROTECTED</h3>
+              <p class="small text-muted mb-0">
+                Recognized HTTP anti-framing mechanisms are actively enforced by the server.
+              </p>
+            </div>
+          {% elif assessment.outcome == 'Potential Risk' %}
+            <i class="fa-solid fa-triangle-exclamation text-warning fs-1"></i>
+            <div>
+              <h3 class="fw-bold text-warning mb-1">POTENTIAL RISK</h3>
+              <p class="small text-muted mb-0">
+                No recognized effective anti-framing restriction was identified in HTTP response headers.
+              </p>
+            </div>
+          {% else %}
+            <i class="fa-solid fa-circle-question text-muted fs-1"></i>
+            <div>
+              <h3 class="fw-bold text-muted mb-1">INCONCLUSIVE</h3>
+              <p class="small text-muted mb-0">
+                The target response could not be assessed reliably due to abnormal HTTP status or timeout.
+              </p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="col-md-4 text-md-end border-start-md border-secondary border-opacity-25 ps-md-4">
+        <div class="small text-dim">HTTP Status</div>
+        <div class="fs-4 fw-bold text-white font-monospace mb-1">
+          HTTP {{ assessment.http_status or 'N/A' }}
+        </div>
+        <div class="small text-dim">Timestamp: {{ assessment.scan_timestamp[:19].replace('T', ' ') }} UTC</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Target & Redirect Metadata Grid -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="cyber-card p-3 h-100">
+        <small class="text-dim d-block mb-1">Requested Target URL</small>
+        <div class="font-monospace small text-white text-break">{{ assessment.url }}</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="cyber-card p-3 h-100">
+        <small class="text-dim d-block mb-1">Final Destination (Post-Redirect)</small>
+        <div class="font-monospace small text-info text-break">{{ assessment.final_url }}</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="cyber-card p-3 h-100">
+        <small class="text-dim d-block mb-1">Resolved Public IP Address</small>
+        <div class="font-monospace small text-white">{{ assessment.ip_address or 'N/A' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Safe Redirect Chain (if redirects occurred) -->
+  {% if assessment.redirects and assessment.redirects|length > 0 %}
+    <div class="cyber-card p-3 mb-4 border-info border-opacity-25">
+      <h6 class="text-info fw-bold mb-2 small text-uppercase">
+        <i class="fa-solid fa-route me-1"></i> Verified Redirect Chain ({{ assessment.redirects|length }} Hops)
+      </h6>
+      <div class="table-responsive">
+        <table class="table table-sm table-cyber mb-0 small">
+          <thead>
+            <tr>
+              <th>Hop</th>
+              <th>Status</th>
+              <th>From</th>
+              <th>Destination (SSRF Verified)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in assessment.redirects %}
+              <tr>
+                <td>#{{ r.hop }}</td>
+                <td><span class="badge bg-secondary font-monospace">{{ r.status_code }}</span></td>
+                <td class="font-monospace text-truncate" style="max-width: 250px;">{{ r.from }}</td>
+                <td class="font-monospace text-info text-truncate" style="max-width: 250px;">{{ r.to }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Detailed Header Findings (XFO vs CSP) -->
+  <div class="row g-4 mb-4">
+    <!-- Card A: X-Frame-Options -->
+    <div class="col-lg-6">
+      <div class="cyber-card h-100">
+        <div class="cyber-card-header">
+          <h5 class="fw-bold text-white mb-0">
+            <i class="fa-solid fa-window-maximize text-info me-2"></i> X-Frame-Options (XFO)
+          </h5>
+          {% if assessment.xfo_status.startswith('Protected') %}
+            <span class="badge badge-status badge-protected">Protected</span>
+          {% elif assessment.xfo_status == 'Missing' %}
+            <span class="badge badge-status badge-potential-risk">Missing</span>
+          {% else %}
+            <span class="badge badge-status badge-inconclusive">{{ assessment.xfo_status }}</span>
+          {% endif %}
+        </div>
+        <div class="cyber-card-body">
+          <div class="mb-3">
+            <small class="text-dim d-block mb-1">Raw Header Value</small>
+            <div class="code-block text-break">
+              {{ assessment.xfo_raw or 'Header not present in HTTP response' }}
+            </div>
+          </div>
+          <div>
+            <small class="text-dim d-block mb-1">Directive Evaluation</small>
+            <p class="small text-light mb-0">{{ assessment.xfo_details }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card B: Content-Security-Policy frame-ancestors -->
+    <div class="col-lg-6">
+      <div class="cyber-card h-100">
+        <div class="cyber-card-header">
+          <h5 class="fw-bold text-white mb-0">
+            <i class="fa-solid fa-shield-halved text-info me-2"></i> Content-Security-Policy (CSP)
+          </h5>
+          {% if assessment.csp_status.startswith('Protected') %}
+            <span class="badge badge-status badge-protected">Protected</span>
+          {% elif assessment.csp_status == 'Missing' or 'Missing' in assessment.csp_status %}
+            <span class="badge badge-status badge-potential-risk">Missing Directive</span>
+          {% else %}
+            <span class="badge badge-status badge-inconclusive">{{ assessment.csp_status }}</span>
+          {% endif %}
+        </div>
+        <div class="cyber-card-body">
+          <div class="mb-3">
+            <small class="text-dim d-block mb-1">frame-ancestors Directive</small>
+            <div class="code-block text-break">
+              {{ assessment.csp_frame_ancestors or 'Directive not specified in policy' }}
+            </div>
+          </div>
+          <div>
+            <small class="text-dim d-block mb-1">Standard Evaluation</small>
+            <p class="small text-light mb-0">{{ assessment.csp_details }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Standard Precedence Explainer -->
+  <div class="cyber-card p-3 mb-4 bg-secondary bg-opacity-10 border-info border-opacity-25">
+    <div class="d-flex align-items-start gap-2">
+      <i class="fa-solid fa-code-compare text-info mt-1"></i>
+      <div class="small">
+        <strong class="text-info">RFC 7034 & W3C CSP Precedence Standard:</strong>
+        {{ assessment.precedence_note }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Technical Explanation & Context -->
+  <div class="cyber-card mb-4">
+    <div class="cyber-card-header">
+      <h5 class="fw-bold text-white mb-0">
+        <i class="fa-solid fa-file-waveform text-info me-2"></i> Technical Analysis & Threat Context
+      </h5>
+    </div>
+    <div class="cyber-card-body">
+      <p class="text-light small mb-3 leading-relaxed">
+        {{ assessment.explanation }}
+      </p>
+
+      <!-- Educational Limitation Notice -->
+      <div class="p-3 rounded bg-dark border border-secondary border-opacity-50 small text-muted">
+        <strong class="text-warning"><i class="fa-solid fa-triangle-exclamation me-1"></i> Audit Limitations:</strong>
+        This assessment inspects HTTP response headers. It cannot assess JavaScript-based frame-busting scripts, 
+        internal state-changing form sensitivity, or multi-factor authentication barriers. Missing headers highlight an architectural 
+        deficiency, but exploitability requires a vulnerable user interaction workflow.
+      </div>
+    </div>
+  </div>
+
+  <!-- Actionable Remediation Guidance -->
+  <div class="cyber-card mb-4 border-success border-opacity-25">
+    <div class="cyber-card-header">
+      <h5 class="fw-bold text-white mb-0">
+        <i class="fa-solid fa-wrench text-success me-2"></i> Recommended Remediation
+      </h5>
+      <a href="{{ url_for('prevention.prevention_guide') }}" class="btn btn-cyber-outline btn-sm">
+        View Server Configs
+      </a>
+    </div>
+    <div class="cyber-card-body">
+      <div class="code-block mb-3">
+        # Recommended Anti-Framing HTTP Headers (OWASP & W3C)<br/>
+        Content-Security-Policy: frame-ancestors 'none';<br/>
+        X-Frame-Options: DENY
+      </div>
+      <p class="text-light small mb-0" style="white-space: pre-line;">
+        {{ assessment.remediation }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Complementary Defensive Headers -->
+  <div class="cyber-card">
+    <div class="cyber-card-header">
+      <h5 class="fw-bold text-white mb-0">
+        <i class="fa-solid fa-layer-group text-info me-2"></i> Complementary Defense-in-Depth Headers
+      </h5>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-cyber mb-0 small">
+        <thead>
+          <tr>
+            <th>Security Header</th>
+            <th>Status</th>
+            <th>Observed Value</th>
+            <th>Defensive Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if assessment.other_headers %}
+            <tr>
+              <td><strong>Strict-Transport-Security</strong></td>
+              <td>
+                {% if assessment.other_headers.strict_transport_security.present %}
+                  <span class="badge bg-success bg-opacity-25 text-success">Present</span>
+                {% else %}
+                  <span class="badge bg-secondary text-muted">Missing</span>
+                {% endif %}
+              </td>
+              <td class="font-monospace text-truncate" style="max-width: 250px;">
+                {{ assessment.other_headers.strict_transport_security.value or 'N/A' }}
+              </td>
+              <td class="text-muted">{{ assessment.other_headers.strict_transport_security.description }}</td>
+            </tr>
+
+            <tr>
+              <td><strong>X-Content-Type-Options</strong></td>
+              <td>
+                {% if assessment.other_headers.x_content_type_options.present %}
+                  <span class="badge bg-success bg-opacity-25 text-success">Present</span>
+                {% else %}
+                  <span class="badge bg-secondary text-muted">Missing</span>
+                {% endif %}
+              </td>
+              <td class="font-monospace text-truncate" style="max-width: 250px;">
+                {{ assessment.other_headers.x_content_type_options.value or 'N/A' }}
+              </td>
+              <td class="text-muted">{{ assessment.other_headers.x_content_type_options.description }}</td>
+            </tr>
+
+            <tr>
+              <td><strong>SameSite Cookie Attribute</strong></td>
+              <td>
+                {% if assessment.other_headers.samesite_cookie.present %}
+                  <span class="badge bg-info bg-opacity-25 text-info">Configured</span>
+                {% else %}
+                  <span class="badge bg-secondary text-muted">Not Observed</span>
+                {% endif %}
+              </td>
+              <td class="font-monospace">
+                {{ assessment.other_headers.samesite_cookie.value or 'N/A' }}
+              </td>
+              <td class="text-muted">{{ assessment.other_headers.samesite_cookie.description }}</td>
+            </tr>
+
+            <tr>
+              <td><strong>Permissions-Policy</strong></td>
+              <td>
+                {% if assessment.other_headers.permissions_policy.present %}
+                  <span class="badge bg-success bg-opacity-25 text-success">Present</span>
+                {% else %}
+                  <span class="badge bg-secondary text-muted">Missing</span>
+                {% endif %}
+              </td>
+              <td class="font-monospace text-truncate" style="max-width: 250px;">
+                {{ assessment.other_headers.permissions_policy.value or 'N/A' }}
+              </td>
+              <td class="text-muted">{{ assessment.other_headers.permissions_policy.description }}</td>
+            </tr>
+
+            <tr>
+              <td><strong>Server Disclosure</strong></td>
+              <td>
+                {% if assessment.other_headers.server_information_leakage.present %}
+                  <span class="badge bg-warning bg-opacity-25 text-warning">Information Exposed</span>
+                {% else %}
+                  <span class="badge bg-success bg-opacity-25 text-success">Clean (Hidden)</span>
+                {% endif %}
+              </td>
+              <td class="font-monospace">
+                Server: {{ assessment.other_headers.server_information_leakage.server or 'Hidden' }}
+              </td>
+              <td class="text-muted">{{ assessment.other_headers.server_information_leakage.description }}</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
